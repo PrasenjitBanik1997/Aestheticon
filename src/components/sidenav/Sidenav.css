@@ -1,0 +1,19 @@
+.side-nav{
+    margin-top: 5px;
+  }
+  
+  .sideNav-text{
+    color: rgb(23, 101, 227);
+    text-decoration: none;
+    position:relative;
+    left:0;
+    top:0;
+    bottom:0;  
+  }
+  .text-content{
+    text-decoration: none;
+    color: black;
+  }
+  .sideNav-content{
+    background-color: rgb(118, 107, 107);
+  }

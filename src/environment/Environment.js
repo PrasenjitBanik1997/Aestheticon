@@ -1,0 +1,1 @@
+export const rootApiUrl= "http://115.187.50.198:8500"
