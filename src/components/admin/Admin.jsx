@@ -22,6 +22,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const label = { inputProps: { 'aria-label': 'Color switch demo' } };
+let allOrgData;
 
 function Admin() {
   const [open, setOpen] = React.useState({ open: false, Id: null })
@@ -43,6 +44,7 @@ function Admin() {
   async function getOrganigation() {
     await getAllOrganisation()
       .then((resp) => {
+        allOrgData = resp.data
         setOrganisationData(resp.data)
         setisLoading(false)
       }).catch((err) => {
@@ -95,15 +97,31 @@ function Admin() {
     await activeOrDeactiveOrg(organisationId).then(() => {
       getOrganigation()
     })
-  }
+  };
 
   const goToAddOrganisationPage = (organisationData) => {
     navigate("/organisation/add_organisation", { state: { organisationData } })
-  }
+  };
 
   const viewOrganisationDetails = (organisationData) => {
     navigate("/organisation/add_organisation", { state: { organisationData } })
-  }
+  };
+
+  const filterByOrgName = (value) => {
+    const filteredRows = organisationData.filter((row) => {
+      return row.orgName
+        .toString()
+        .toLowerCase()
+        .trim()
+        .includes(value.toString().toLowerCase().trim())
+    })
+    if (value.trim().toString().length < 1) {
+      setOrganisationData(allOrgData);
+    } else {
+      console.log(filteredRows)
+      setOrganisationData(filteredRows);
+    }
+  };
 
   return (
     <div className='body'>
@@ -119,6 +137,14 @@ function Admin() {
           </span>
         </div>
       </div>
+      <span style={{ marginLeft: 5 }}>
+        <material.TextField
+          sx={{ width: "30ch" }}
+          variant="standard"
+          label="Filter by Organisation Name"
+          onChange={(e) => filterByOrgName(e.target.value)}
+        />
+      </span>
       <div className="row mt-3">
         <div className="col-12">
           <material.Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -153,7 +179,7 @@ function Admin() {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           >
                             <material.TableCell size='small' component="th" scope="row">{row.orgId}  </material.TableCell>
-                            <material.TableCell size='small' align="right">{row.orgName}</material.TableCell>
+                            <material.TableCell sx={{ textTransform: "capitalize" }} size='small' align="right">{row.orgName}</material.TableCell>
                             <material.TableCell size='small' align="right">{row.director1}</material.TableCell>
                             <material.TableCell size='small' align="right">{row.director1Phone}</material.TableCell>
                             <material.TableCell size='small' align="right">{row.active ? (<p style={{ color: "green", fontWeight: "bold" }}>active</p>) : (<p style={{ color: "red", fontWeight: "bold" }}>De-active</p>)}</material.TableCell>
@@ -223,7 +249,7 @@ function ConfirmationDialog(props) {
         <material.DialogContent>Are you sure,you want to delete this Organisation?</material.DialogContent>
         <material.DialogActions className='me-3'>
           <material.Button onClick={dialogClose} variant="outlined" startIcon={<material.CloseIcon />}>Cancel</material.Button>
-          <material.Button onClick={orgDelete} variant="contained"  color="error" startIcon={<material.DeleteIcon />}>Delete</material.Button>
+          <material.Button onClick={orgDelete} variant="contained" color="error" startIcon={<material.DeleteIcon />}>Delete</material.Button>
         </material.DialogActions>
       </material.Dialog>
     </div>

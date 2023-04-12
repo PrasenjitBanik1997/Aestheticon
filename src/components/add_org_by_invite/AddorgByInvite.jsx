@@ -2,30 +2,49 @@ import React, { useState } from 'react'
 import { material } from '../../library/material'
 import { useForm } from "react-hook-form"
 import { getInviteDetails, registerByInvite } from '../../services/OrganisationService';
+import Snackbar from '../toastrmessage/Snackbar';
+import { useNavigate } from 'react-router-dom';
 
 
 function AddorgByInvite() {
   const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm({
     mode: "onTouched"
   });
+  const navigate = useNavigate();
   const [isEnableFormField, setisEnableFormField] = useState(true);
+  const [openSnackBar, setOpenSnackBar] = useState({
+    "action": false,
+    "type": "",
+    "message": "",
+  });
+
   const addOrganisation = async (formData) => {
-   console.log(formData)
-   await registerByInvite(formData).then((res)=>{
-    console.log(res)
-   })
-  }
+    await registerByInvite(formData).then((res) => {
+      setOpenSnackBar({
+        "action": true,
+        "type": "success",
+        "message": "Your registration successful",
+      })
+      navigate("/login");
+    })
+      .catch((error) => {
+        setOpenSnackBar({
+          "action": true,
+          "type": "error",
+          "message": "Invalid Credentiall",
+        })
+      })
+  };
 
   const checkInviteCode = async (event) => {
     let obj = { inviteCode: event.target.value };
     // setTimeout(() => {
-     await getInviteDetails(obj).then((res) => {
-        setisEnableFormField(false)
-        reset({email:res.data.email,role:res.data.role})
-      }).catch((err) => {
-        setisEnableFormField(true)
-        console.log(err)
-      })
+    await getInviteDetails(obj).then((res) => {
+      setisEnableFormField(false)
+      reset({ email: res.data.email, role: res.data.role })
+    }).catch((err) => {
+      setisEnableFormField(true)
+    })
     // },3000)
 
 
@@ -69,8 +88,8 @@ function AddorgByInvite() {
                 size="small"
                 disabled={isEnableFormField}
                 fullWidth
-                inputProps={{style: {textTransform: 'capitalize'}}}
-                sx={{ marginTop: { xs: 3, sm: 3, md: 3 },textTransform:"capitalize" }}
+                inputProps={{ style: { textTransform: 'capitalize' } }}
+                sx={{ marginTop: { xs: 3, sm: 3, md: 3 }, textTransform: "capitalize" }}
               />
             </div>
             <div className="col-lg-3 col-md-6 col-sm-12">
@@ -151,7 +170,7 @@ function AddorgByInvite() {
                 type="text"
                 disabled={isEnableFormField}
                 fullWidth
-                inputProps={{style: {textTransform: 'capitalize'}}}
+                inputProps={{ style: { textTransform: 'capitalize' } }}
                 sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
               />
             </div>
@@ -271,7 +290,7 @@ function AddorgByInvite() {
                 // defaultValue="Small"
                 size="small"
                 fullWidth
-                inputProps={{style: {textTransform: 'capitalize'}}}
+                inputProps={{ style: { textTransform: 'capitalize' } }}
                 sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
               />
             </div>
@@ -338,7 +357,7 @@ function AddorgByInvite() {
                 disabled={isEnableFormField}
                 // defaultValue="Small"
                 size="small"
-                inputProps={{style: {textTransform: 'capitalize'}}}
+                inputProps={{ style: { textTransform: 'capitalize' } }}
                 fullWidth
                 sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
               />
@@ -410,11 +429,11 @@ function AddorgByInvite() {
                 // defaultValue={value.role}
                 size="small"
                 type='text'
-                 disabled={isEnableFormField}
+                disabled={isEnableFormField}
                 fullWidth
                 sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
-                InputLabelProps={{shrink:true}}
-                InputProps={{readOnly:true}}
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ readOnly: true }}
               />
             </div>
             <div className="col-lg-3 col-md-6 col-sm-12">
@@ -445,8 +464,8 @@ function AddorgByInvite() {
                 disabled={isEnableFormField}
                 fullWidth
                 sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
-                InputLabelProps={{ shrink:true}}
-                InputProps={{readOnly:true}}
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ readOnly: true }}
               />
             </div>
             {/* <div className="col-lg-3 col-md-6 col-sm-12">
@@ -472,6 +491,10 @@ function AddorgByInvite() {
           </div>
         </form>
       </material.Paper>
+      <Snackbar
+        openSnackBar={openSnackBar}
+        setOpenSnackBar={setOpenSnackBar}
+      />
     </div>
   )
 }

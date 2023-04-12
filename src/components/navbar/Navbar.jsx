@@ -54,7 +54,7 @@ function Navbar(props) {
               >
                 <material.MenuIcon sx={{ fontSize: 30 }} />
               </material.IconButton>
-              <material.Typography sx={{ color: "black", marginTop: "-2px !important", flexGrow: 1 }} className="nav-content">Logged in as {userDetails.role}</material.Typography>
+              <material.Typography sx={{ color: "black", marginTop: "-2px !important", flexGrow: 1 }} className="nav-content">Logged in as ({userDetails.email} , {userDetails.role})</material.Typography>
               <material.IconButton
                 onClick={logOut}
               // edge="end"

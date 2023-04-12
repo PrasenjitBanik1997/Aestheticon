@@ -44,10 +44,15 @@ function Login(props) {
           "message": "You have succesfully logedin",
         })
         setTimeout(()=>{
-          navigate("/organisation")
+          if(res.data.role === "SUPERADMIN"){
+            navigate("/organisation")
+          } else if(res.data.role === "ADMIN"){
+            navigate("/clinic")
+          } else if(res.data.role === "MANAGER"){
+            navigate("/dashboard")
+          }
           reset()
-        },500)
-       
+        },500);
       }).catch(() => {
         setOpenSnackBar({
           "action": true,
@@ -56,12 +61,7 @@ function Login(props) {
         })
       })
 
-  }
-
-
-
-
-
+  };
 
   return (
     <div>

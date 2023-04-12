@@ -10,15 +10,18 @@ import moment from 'moment/moment';
 import { createOrganisation, updateOrganisation } from '../../services/OrganisationService';
 import { useLocation, useNavigate } from 'react-router-dom'
 import Snackbar from '../toastrmessage/Snackbar';
+import { connect } from 'react-redux';
+import { createClinic, updateClinic } from '../../services/ClinicService';
 
-function Addorganisation() {
+function Addorganisation(props) {
+    const { userData } = props;
+    let userDetails = userData.authReducer.data;
     const location = useLocation();
-    let organisatioDetails = location.state?.organisationData
+    let organisatioDetails = location.state ? location.state.organisationData : "";
     const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm({
         mode: "onTouched",
         defaultValues: organisatioDetails ? organisatioDetails : ""
     });
-    console.log(organisatioDetails)
     const [value, setValue] = React.useState(moment().format("MM-DD-YYYY, HH:mm"));
     const navigate = useNavigate();
     const [openSnackBar, setOpenSnackBar] = useState({
@@ -28,40 +31,92 @@ function Addorganisation() {
     });
 
     const addOrganisation = async (formData) => {
-        await createOrganisation(formData).then((res) => {
-            reset()
-            setOpenSnackBar({
-                "action": true,
-                "type": "success",
-                "message": "Organosation added successfully",
-            })
-        }).catch((err) => {
-            setOpenSnackBar({
-                "action": true,
-                "type": "error",
-                "message": "Something went wrong",
-            })
-        })
-    }
-    const updateOrganisationDetails = async (formData) => {
-        await updateOrganisation(formData).then(() => {
-            setOpenSnackBar({
-                "action": true,
-                "type": "success",
-                "message": "Organosation updated successfully",
-            })
-            setTimeout(() => {
+        if (organisatioDetails.callFrom === "add") {
+            await createOrganisation(formData).then((res) => {
                 reset()
-                goBack()
-            }, 1000)
-        }).catch(() => {
+                setOpenSnackBar({
+                    "action": true,
+                    "type": "success",
+                    "message": "Organosation added successfully",
+                })
+            }).catch((err) => {
+                setOpenSnackBar({
+                    "action": true,
+                    "type": "error",
+                    "message": "Something went wrong",
+                })
+            })
+        } else if (organisatioDetails.parentComponent === "clinic") {
+            await createClinic({ ...formData, "orgId": userDetails.orgId })
+                .then((res) => {
+                    reset()
+                    setOpenSnackBar({
+                        "action": true,
+                        "type": "success",
+                        "message": "Clinic added successfully",
+                    })
+                })
+                .catch((error) => {
+                    setOpenSnackBar({
+                        "action": true,
+                        "type": "error",
+                        "message": error.response.data.info,
+                    })
+                })
+        };
 
-        })
-    }
+    };
+
+    const updateOrganisationDetails = async (formData) => {
+        if (userDetails.role === "SUPERADMIN") {
+            await updateOrganisation(formData).then(() => {
+                setOpenSnackBar({
+                    "action": true,
+                    "type": "success",
+                    "message": "Organosation updated successfully",
+                })
+                setTimeout(() => {
+                    reset()
+                    goBack()
+                }, 1000)
+            }).catch(() => {
+                setOpenSnackBar({
+                    "action": true,
+                    "type": "error",
+                    "message": "Something went wrong",
+                })
+            })
+        } else if (userDetails.role === "ADMIN") {
+            await updateClinic(formData)
+                .then((resp) => {
+                    setOpenSnackBar({
+                        "action": true,
+                        "type": "success",
+                        "message": "Organosation updated successfully",
+                    })
+                    setTimeout(() => {
+                        reset()
+                        goBack()
+                    }, 1000)
+                })
+                .catch((error) => {
+                    setOpenSnackBar({
+                        "action": true,
+                        "type": "error",
+                        "message": "Something went wrong",
+                    })
+                })
+        };
+
+    };
 
     const goBack = () => {
-        navigate("/organisation")
-    }
+        if (userDetails.role === "ADMIN") {
+            navigate("/clinic")
+        } else if (userDetails.role === "SUPERADMIN") {
+            navigate("/organisation")
+        }
+    };
 
     // const handleChange = (newValue) => {
     //     setValue(newValue);
@@ -73,8 +128,11 @@ function Addorganisation() {
             <Swipedrawer />
             <div className="row">
                 <div className="col-6">
-                    <span><material.Typography variant="h5">Add Organisation</material.Typography>
-                    </span>
+                    {organisatioDetails.parentComponent === "clinic" ? (
+                        <span><material.Typography variant="h5">Add Clinic</material.Typography></span>
+                    ) : organisatioDetails.callFrom === "add" ? (
+                        <span><material.Typography variant="h5">Add Organisation</material.Typography></span>
+                    ) : ""}
                 </div>
                 <div className="col-6">
                     <span className='float-end'>
@@ -87,21 +145,39 @@ function Addorganisation() {
                 <form >
                     <div className="row">
                         <div className="col-lg-3 col-md-6 col-sm-12">
-                            <material.TextField
-                                error={errors.orgName?.type === "required"}
-                                {...register("orgName", { required: true })}
-                                label="Organisation Name"
-                                id="standard-error"
-                                variant="standard"
-                                type="text"
-                                // defaultValue="Small"
-                                size="small"
-                                fullWidth
-                                inputProps={{ style: { textTransform: 'capitalize' } }}
-                                sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
-                                InputProps={{ readOnly: organisatioDetails.readOnly }}
+                            {userDetails.role === "ADMIN" ? (
+                                <material.TextField
+                                    error={errors.orgName?.type === "required"}
+                                    {...register("clinicName", { required: true })}
+                                    label="Clinic Name"
+                                    id="standard-error"
+                                    variant="standard"
+                                    type="text"
+                                    // defaultValue="Small"
+                                    size="small"
+                                    fullWidth
+                                    inputProps={{ style: { textTransform: 'capitalize' } }}
+                                    sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                    InputProps={{ readOnly: organisatioDetails.readOnly }}
 
-                            />
+                                />
+                            ) : (
+                                <material.TextField
+                                    error={errors.orgName?.type === "required"}
+                                    {...register("orgName", { required: true })}
+                                    label="Organisation Name"
+                                    id="standard-error"
+                                    variant="standard"
+                                    type="text"
+                                    // defaultValue="Small"
+                                    size="small"
+                                    fullWidth
+                                    inputProps={{ style: { textTransform: 'capitalize' } }}
+                                    sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                    InputProps={{ readOnly: organisatioDetails.readOnly }}
+
+                                />
+                            )}
                         </div>
                         <div className="col-lg-3 col-md-6 col-sm-12">
                             <material.TextField
@@ -157,7 +233,7 @@ function Addorganisation() {
                         <div className="col-lg-3 col-md-6 col-sm-12">
                             <material.TextField
                                 error={errors.director1Id?.type === "required"}
-                                {...register("director1Id", { required: true })}
+                                {...register("director1Id", { required: organisatioDetails.parentComponent === "clinic" ? false : true })}
                                 label="Director_1 ID"
                                 id="standard-size-small"
                                 variant="standard"
@@ -172,7 +248,7 @@ function Addorganisation() {
                         <div className="col-lg-3 col-md-6 col-sm-12">
                             <material.TextField
                                 error={errors.director1?.type === "required"}
-                                {...register("director1", { required: true })}
+                                {...register("director1", { required: organisatioDetails.parentComponent === "clinic" ? false : true })}
                                 label="Director_1 Name"
                                 id="standard-size-small"
                                 variant="standard"
@@ -227,7 +303,7 @@ function Addorganisation() {
                         <div className="col-lg-3 col-md-6 col-sm-12">
                             <material.TextField
                                 error={errors.director2Id?.type === "required"}
-                                {...register("director2Id", { required: true })}
+                                {...register("director2Id", { required: organisatioDetails.parentComponent === "clinic" ? false : true })}
                                 label="Director_2 ID"
                                 id="standard-size-small"
                                 variant="standard"
@@ -242,7 +318,7 @@ function Addorganisation() {
                         <div className="col-lg-3 col-md-6 col-sm-12">
                             <material.TextField
                                 error={errors.director2?.type === "required"}
-                                {...register("director2", { required: true })}
+                                {...register("director2", { required: organisatioDetails.parentComponent === "clinic" ? false : true })}
                                 label="Director_2 Name"
                                 id="standard-size-small"
                                 variant="standard"
@@ -450,21 +526,19 @@ function Addorganisation() {
                             </LocalizationProvider>
                         </div> */}
                         <div className="col-lg-12 col-md-12 col-sm-12">
-                            {organisatioDetails.callFrom === "add" ?
-                                (<span className='float-end'>
+                            {organisatioDetails.callFrom === "add" || organisatioDetails.parentComponent === "clinic" ? (
+                                <span className='float-end'>
                                     <material.Button variant="contained" size="medium" className=" mt-3 " onClick={handleSubmit(addOrganisation)} disabled={!isValid}>
                                         Save
                                     </material.Button>
-                                </span>)
-                                :
-                                organisatioDetails.callFrom === "edit" ?
-                                    (<span className='float-end'>
-                                        <material.Button variant="contained" size="medium" className=" mt-3 " onClick={handleSubmit(updateOrganisationDetails)} disabled={!isValid}>
-                                            Update
-                                        </material.Button>
-                                    </span>)
-                                    : ""
-                            }
+                                </span>
+                            ) : organisatioDetails.callFrom === "edit" ? (
+                                <span className='float-end'>
+                                    <material.Button variant="contained" size="medium" className=" mt-3 " onClick={handleSubmit(updateOrganisationDetails)} disabled={!isValid}>
+                                        Update
+                                    </material.Button>
+                                </span>
+                            ) : ""}
 
                         </div>
                     </div>
@@ -480,6 +554,12 @@ function Addorganisation() {
 
         </div>
     )
-}
+};
 
-export default Addorganisation
+const mapStateToProps = (state) => {
+    return {
+        userData: state,
+    };
+};
+
+export default connect(mapStateToProps)(Addorganisation)

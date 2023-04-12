@@ -1,15 +1,15 @@
 body {
   margin: 0;
-  overflow-x: hidden ;
+  overflow-x: hidden;
   background-color: rgb(243, 245, 247) !important;
 }
 
-.body{
+.body {
   margin-left: 79px;
   margin-top: 20px;
   margin-right: 10px;
 }
 
-p{
+p {
   margin-top: 17px !important;
 }

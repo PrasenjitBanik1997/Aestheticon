@@ -30,17 +30,32 @@ function Sidenav(props) {
                         </div>
                         <div className='mt-1'>
                             <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/user_management" >
-                                <material.ManageAccountsIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Usermanagement</span>) : null}
+                                <material.ManageAccountsIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>User Management</span>) : null}
                             </NavLink>
                         </div>
                     </>
-                ) : userDetails.role === "ADMIN" ? (<>
-                    <div className='mt-1'>
-                        <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/clinic" >
-                            <material.MedicalServicesOutlinedIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Clinic</span>) : null}
-                        </NavLink>
-                    </div>
-                </>):""}
+                ) : userDetails.role === "ADMIN" ? (
+                    <>
+                        <div className='mt-1'>
+                            <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/clinic" >
+                                <material.MedicalServicesOutlinedIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Clinic</span>) : null}
+                            </NavLink>
+                        </div>
+                        <div className='mt-1'>
+                            <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/user_management" >
+                                <material.ManageAccountsIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>User Management</span>) : null}
+                            </NavLink>
+                        </div>
+                    </>
+                ) : userDetails.role === "MANAGER" ? (
+                    <>
+                        <div>
+                            <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/dashboard">
+                                <material.DashboardIcon sx={{ fontSize: "60px", padding: "10px" }} />{open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Dashboard</span>) : null}
+                            </NavLink>
+                        </div>
+                    </>
+                ) : ""}
             </div>
         </material.Paper>
     )

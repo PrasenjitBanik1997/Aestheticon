@@ -75,6 +75,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import CardActionArea from '@mui/material/CardActionArea';
+import AddIcon from '@mui/icons-material/Add';
 
 
 
@@ -155,5 +158,8 @@ export const material = {
     PersonIcon,
     TablePagination,
     DesktopDatePicker,
-    MuiAlert
+    MuiAlert,
+    DashboardIcon,
+    CardActionArea,
+    AddIcon
 }
