@@ -5,8 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { styled } from '@mui/material/styles';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
-import { activeOrDeactiveClinic, deleteClinicById, getAllClinic } from '../../services/ClinicService';
+import { activeOrDeactiveClinic, deleteClinicById, getAllClinic, getClinicForInjector } from '../../services/ClinicService';
 import Snackbar from '../toastrmessage/Snackbar'
+import { connect } from 'react-redux';
+import { getClinicAction } from '../../store/action/Action';
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -24,7 +26,10 @@ const label = { inputProps: { 'aria-label': 'Color switch demo' } };
 
 let allClinicData;
 
-function Clinic() {
+function Clinic(props) {
+
+  const { userData, getClinicDetails } = props;
+  let userDetails = userData.authReducer.data;
   const [open, setOpen] = React.useState({ open: false, Id: null })
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -38,7 +43,11 @@ function Clinic() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getClinic()
+    if (userDetails.role === "INJECTOR") {
+      clinicDetailsForInjector()
+    } else {
+      getClinic()
+    }
   }, []);
 
   const getClinic = async () => {
@@ -53,7 +62,18 @@ function Clinic() {
           setisLoading(false)
         }, 1000);
       })
-  }
+  };
+
+  const clinicDetailsForInjector = async () => {
+    await getClinicForInjector()
+      .then((resp) => {
+        setClinicData(resp.data)
+        setisLoading(false)
+      })
+      .catch((error) => {
+
+      })
+  };
 
   const deleteClinic = async (clinicId) => {
     setOpen({ open: true, Id: clinicId })
@@ -121,6 +141,12 @@ function Clinic() {
     }
   };
 
+  const selectClinic = (clinicData) => {
+    getClinicDetails(clinicData)
+    navigate("/dashboard")
+  }
+
+
   return (
     <div className='body'>
       <Swipedrawer />
@@ -129,7 +155,7 @@ function Clinic() {
           <span><material.Typography variant="h5">Clinic</material.Typography>
           </span>
         </div>
-        <div className="col-6">
+        <div className="col-6" hidden={userDetails.role === "INJECTOR"}>
           <span className="float-end">
             <material.Button variant="contained" onClick={() => goToAddClinicPage({ "readOnly": false, "parentComponent": "clinic" })} startIcon={<material.ApartmentIcon />}> Add-Clinic</material.Button>
           </span>
@@ -151,11 +177,11 @@ function Clinic() {
                 <material.TableHead >
                   <material.TableRow>
                     <StyledTableCell >Clinic ID</StyledTableCell>
-                    <StyledTableCell align="right">Clinic Name</StyledTableCell>
-                    <StyledTableCell align="right">Director Name</StyledTableCell>
-                    <StyledTableCell align="right">Director's Ph No.</StyledTableCell>
-                    <StyledTableCell align="right">Status</StyledTableCell>
-                    <StyledTableCell align="right">Actions</StyledTableCell>
+                    <StyledTableCell>Clinic Name</StyledTableCell>
+                    <StyledTableCell align="right" hidden={userDetails.role === "INJECTOR"}>Director Name</StyledTableCell>
+                    <StyledTableCell align="right" hidden={userDetails.role === "INJECTOR"}>Director's Ph No.</StyledTableCell>
+                    <StyledTableCell align="right" hidden={userDetails.role === "INJECTOR"}>Status</StyledTableCell>
+                    <StyledTableCell align="right" hidden={userDetails.role === "INJECTOR"}>Actions</StyledTableCell>
                   </material.TableRow>
                 </material.TableHead>
                 <material.TableBody>
@@ -172,14 +198,17 @@ function Clinic() {
                       {clinicData.length ? clinicData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => (
                         <material.TableRow
                           key={i}
-                          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                          sx={userDetails.role === "INJECTOR" ?
+                            { '&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer", ":hover": { backgroundColor: "lightgray" } }
+                            : { '&:last-child td, &:last-child th': { border: 0 } }}
+                          onClick={userDetails.role === "INJECTOR" ? () => selectClinic(row) : null}
                         >
                           <material.TableCell size='small' component="th" scope="row">{row.clinicId}  </material.TableCell>
-                          <material.TableCell size='small' align="right">{row.clinicName}</material.TableCell>
-                          <material.TableCell size='small' align="right">{row.director1}</material.TableCell>
-                          <material.TableCell size='small' align="right">{row.director1Phone}</material.TableCell>
-                          <material.TableCell size='small' align="right">{row.active ? (<p style={{ color: "green", fontWeight: "bold" }}>active</p>) : (<p style={{ color: "red", fontWeight: "bold" }}>De-active</p>)}</material.TableCell>
-                          <material.TableCell align="right">
+                          <material.TableCell size='small'>{row.clinicName}</material.TableCell>
+                          <material.TableCell size='small' align="right" hidden={userDetails.role === "INJECTOR"}>{row.director1}</material.TableCell>
+                          <material.TableCell size='small' align="right" hidden={userDetails.role === "INJECTOR"}>{row.director1Phone}</material.TableCell>
+                          <material.TableCell size='small' align="right" hidden={userDetails.role === "INJECTOR"}>{row.active ? (<p style={{ color: "green", fontWeight: "bold" }}>active</p>) : (<p style={{ color: "red", fontWeight: "bold" }}>De-active</p>)}</material.TableCell>
+                          <material.TableCell align="right" hidden={userDetails.role === "INJECTOR"}>
                             <material.IconButton title='Edit Organisation' aria-label="create" size="large" onClick={() => viewClinicDetails({ ...row, "readOnly": false, "callFrom": "edit" })}>
                               <material.CreateIcon color='primary' />
                             </material.IconButton>
@@ -254,6 +283,20 @@ function ConfirmationDialog(props) {
       </material.Dialog>
     </div>
   )
-}
+};
 
-export default Clinic;
+const mapStateToProps = (state) => {
+  return {
+    userData: state,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getClinicDetails: (data) => {
+      dispatch(getClinicAction(data));
+    },
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Clinic);

@@ -78,6 +78,9 @@ import MuiAlert from '@mui/material/Alert';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CardActionArea from '@mui/material/CardActionArea';
 import AddIcon from '@mui/icons-material/Add';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 
 
 
@@ -161,5 +164,8 @@ export const material = {
     MuiAlert,
     DashboardIcon,
     CardActionArea,
-    AddIcon
+    AddIcon,
+    ScheduleIcon,
+    CameraAltIcon,
+    AddAPhotoIcon
 }

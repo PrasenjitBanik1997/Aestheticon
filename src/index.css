@@ -13,3 +13,19 @@ body {
 p {
   margin-top: 17px !important;
 }
+
+.sigBox {
+  border: 1px solid black;
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+  /* center horizontally */
+  align-items: center;
+  /* center vertically */
+}
+
+.image {
+  border: 1px solid black;
+}

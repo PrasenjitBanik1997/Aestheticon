@@ -17,3 +17,7 @@ export const getPatientHistory = async (patientId) => {
 export const addPatientHistory = async (patientHistory) => {
     return await axios.post(`${rootApiUrl}/add-patient-history`, patientHistory);
 };
+
+export const getAllPatientByClinicId = async (clinicId) => {
+    return await axios.get(`${rootApiUrl}/get-patient-details-by-clinicId/${clinicId}`);
+};

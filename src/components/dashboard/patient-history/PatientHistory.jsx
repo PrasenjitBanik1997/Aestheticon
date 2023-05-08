@@ -11,12 +11,30 @@ import AddPatientHistory from '../../dialog/AddPatientHistory';
 import moment from 'moment';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import { connect } from 'react-redux';
+import { styled } from '@mui/material/styles';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
+
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: "#80d8ff",
+        color: theme.palette.common.white,
+        fontWeight: "bold",
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+    },
+}));
 
 let patientHistoryData = [];
 let history = [];
 
 function PatientHistory(props) {
+
+    const { userData } = props;
+    let userDetails = userData.authReducer.data;
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -29,7 +47,9 @@ function PatientHistory(props) {
         "type": "",
         "message": "",
     });
-    const [hide, setHide] = useState(true);
+    const [hideShow, setHideShow] = useState(false);
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
     let patientData = location.state ? location.state.patientData : "";
 
@@ -46,7 +66,11 @@ function PatientHistory(props) {
     }
 
     const goBack = () => {
+        // if (userDetails.role === "INJECTOR") {
         navigate("/dashboard/patient-list/edit-patient", { state: { patientData } })
+        // } else {
+        //     navigate("/clinic/patient-list/edit-patient", { state: { patientData } })
+        // }
     };
 
     const addInfo = () => {
@@ -57,7 +81,19 @@ function PatientHistory(props) {
         setOpen({ action: true, patientHistory: data })
     };
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(+event.target.value);
+        setPage(0);
+    };
+
     const getPatientHistoryData = (data) => {
+        if (data !== "") {
+            setHideShow(true)
+        }
         patientHistoryData.push(data)
         let obj = {}
         obj[data.key] = data.value
@@ -77,6 +113,7 @@ function PatientHistory(props) {
                     "type": "success",
                     "message": "History added successfully",
                 })
+                setHideShow(false)
                 getAllHistoryOfPatient()
             })
             .catch((error) => {
@@ -107,56 +144,108 @@ function PatientHistory(props) {
                     <Skeleton count={10} />
                 </SkeletonTheme>
             ) : (
-                <div>
-                    <div className="row">
-                        {patientsHistory.map((ele, i) => (
-                            <div className='col-3 mt-3' key={i}>
-                                <material.Card sx={{ pt: 3, pb: 3, backgroundColor: "rgb(228, 251, 228)" }}>
-                                    <material.CardActionArea onClick={() => handleClick(ele)}>
+                <div className='mt-3'>
+                    <material.Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                        <div className="row">
+                            {/* {patientsHistory.map((ele, i) => (
+                                <div className='col-3 mt-3' key={i}>
+                                    <material.Card sx={{ backgroundColor: "lightblue" }}>
+                                    <material.CardActionArea onClick={() => handleClick(ele)} sx={{ pt: 3, pb: 3 }}>
                                         <material.CardContent>
                                             <h6 className='text-center'>{localDateTimeFormat(ele.dateOfEntry)}</h6>
                                         </material.CardContent>
                                     </material.CardActionArea>
                                 </material.Card>
-                            </div>
-                        ))}
-                    </div>
-                    {patientHistoryData.length ? (
-                        <material.Paper className='p-4 mt-2' elevation={1}>
-                            <span><material.Typography variant="h5">History</material.Typography></span>
-                            {patientHistoryData.length ? patientHistoryData.map((element, i) => (
-                                <div className='row' key={i}>
-                                    <div className='col-lg-2 col-md-4 col-sm-6 mt-3'>
-                                        <material.Typography>{element ? element.key : ""}</material.Typography>
+                                </div>
+                            ))} */}
+                            <material.TableContainer sx={{ maxHeight: 460 }}>
+                                <material.Table stickyHeader aria-label="sticky table">
+                                    <material.TableHead >
+                                        <material.TableRow>
+                                            <StyledTableCell >Date of Entry</StyledTableCell>
+                                        </material.TableRow>
+                                    </material.TableHead>
+                                    <material.TableBody>
+                                        {isLoading ? (
+                                            <material.TableRow >
+                                                <material.TableCell colSpan={6}>
+                                                    <SkeletonTheme baseColor="#bbdefb" highlightColor="#c6ff00" enableAnimation="true" inline="true" width="100% " height="30px">
+                                                        <Skeleton count={10} />
+                                                    </SkeletonTheme>
+                                                </material.TableCell>
+                                            </material.TableRow>
+                                        ) : (
+                                            <>
+                                                {patientsHistory.length ? patientsHistory.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => (
+                                                    <material.TableRow
+                                                        key={i}
+                                                        sx={{
+                                                            '&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer",
+                                                            ":hover": { backgroundColor: "lightgray" }
+                                                        }}
+                                                        onClick={() => handleClick(row)}
+                                                    >
+                                                        <material.TableCell sx={{ pt: 3, pb: 3 }} size='small' component="th" scope="row">{localDateTimeFormat(row.dateOfEntry)}</material.TableCell>
+                                                    </material.TableRow>
+                                                )) : (
+                                                    <material.TableRow >
+                                                        <material.TableCell colSpan={6}>
+                                                            <h6 className='d-flex justify-content-center text-danger fw-bold'>No data found</h6>
+                                                        </material.TableCell>
+                                                    </material.TableRow>
+                                                )}
+                                            </>)}
+                                    </material.TableBody>
+                                </material.Table>
+                            </material.TableContainer>
+                            <material.TablePagination
+                                rowsPerPageOptions={[5, 10, 20]}
+                                component="div"
+                                count={patientsHistory.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onPageChange={handleChangePage}
+                                onRowsPerPageChange={handleChangeRowsPerPage}
+                            />
+                        </div>
+                        {hideShow === true ? (
+                            <div className='m-3'>
+                                <hr />
+                                <span><material.Typography variant="h5">History</material.Typography></span>
+                                {patientHistoryData.length ? patientHistoryData.map((element, i) => (
+                                    <div className='row' key={i}>
+                                        <div className='col-lg-2 col-md-4 col-sm-6 mt-3'>
+                                            <material.Typography>{element ? element.key : ""}</material.Typography>
+                                        </div>
+                                        <div className='col-lg-10 col-md-8 col-sm-6'>
+                                            <material.TextField
+                                                label={element ? element.key : ""}
+                                                id="standard-error"
+                                                variant="standard"
+                                                type="text"
+                                                size="small"
+                                                multiline
+                                                fullWidth
+                                                value={element ? element.value : ""}
+                                                InputProps={{ readOnly: true }}
+                                                inputProps={{ style: { textTransform: 'capitalize' } }}
+                                                sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className='col-lg-10 col-md-8 col-sm-6'>
-                                        <material.TextField
-                                            label={element ? element.key : ""}
-                                            id="standard-error"
-                                            variant="standard"
-                                            type="text"
-                                            size="small"
-                                            multiline
-                                            fullWidth
-                                            value={element ? element.value : ""}
-                                            InputProps={{ readOnly: true }}
-                                            inputProps={{ style: { textTransform: 'capitalize' } }}
-                                            sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
-                                        />
+                                )) : ""}
+                                <div className='row mt-5'>
+                                    <div className='col-lg-12 col-md-12 col-sm-12'>
+                                        <span className='float-end'>
+                                            <material.Button variant="contained" size="medium" onClick={() => addHistory({ "Action": "save" })}>
+                                                Save
+                                            </material.Button>
+                                        </span>
                                     </div>
                                 </div>
-                            )) : ""}
-                            <div className='row mt-5'>
-                                <div className='col-lg-12 col-md-12 col-sm-12'>
-                                    <span className='float-end'>
-                                        <material.Button variant="contained" size="medium" onClick={() => addHistory({ "Action": "save" })}>
-                                            Save
-                                        </material.Button>
-                                    </span>
-                                </div>
                             </div>
-                        </material.Paper>
-                    ) : null}
+                        ) : null}
+                    </material.Paper>
                 </div>
             )}
             <ShowHistory
@@ -212,6 +301,13 @@ const ShowHistory = (props) => {
             </material.Dialog>
         </div>
     )
-}
+};
 
-export default PatientHistory;
+const mapStateToProps = (state) => {
+    return {
+        userData: state,
+        clinicData: state
+    };
+};
+
+export default connect(mapStateToProps)(PatientHistory);

@@ -7,6 +7,8 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
 import { activeOrDeactiveUser, getUsersList } from '../../services/UserManagementService';
+import { useNavigate } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -23,8 +25,10 @@ const label = { inputProps: { 'aria-label': 'Color switch demo' } };
 
 let allUsersData;
 
-const Usermanagement = () => {
+const Usermanagement = (props) => {
 
+    const { userData } = props;
+    let userDetails = userData.authReducer.data
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [usersData, setUsersData] = useState([]);
@@ -34,6 +38,7 @@ const Usermanagement = () => {
         open: false,
         action: ""
     });
+    const navigate = useNavigate();
 
     useEffect(() => {
         getAllUserList()
@@ -79,8 +84,9 @@ const Usermanagement = () => {
             })
     };
 
-    const viewUserDetails = (usersData) => {
-        // navigate("/organisation/add_organisation", { state: { usersData } })
+    const viewUserDetails = (userData) => {
+        // console.log(data)
+        navigate("/user_management/edit-user_management", { state: { userData } })
     };
 
     const deleteUser = async (orgId) => {
@@ -113,7 +119,7 @@ const Usermanagement = () => {
                 <div className="col-6">
                     <span className="float-end">
                         <material.Button variant="contained" sx={{ mr: 1 }} startIcon={<material.PersonIcon />} onClick={() => openInviteDialog("add-user")}>Add-User</material.Button>
-                        <material.Button variant="contained" startIcon={<material.PersonIcon />} onClick={() => openInviteDialog("invite-user")}>Invite-User</material.Button>
+                        <material.Button variant="contained" hidden={userDetails.role === "ADMIN"} startIcon={<material.PersonIcon />} onClick={() => openInviteDialog("invite-user")}>Invite-User</material.Button>
                     </span>
                 </div>
             </div>
@@ -164,9 +170,11 @@ const Usermanagement = () => {
                                                         <material.TableCell size='small' align="right">{row.userId}</material.TableCell>
                                                         <material.TableCell size='small' align="right">{row.active ? (<p style={{ color: "green", fontWeight: "bold" }}>active</p>) : (<p style={{ color: "red", fontWeight: "bold" }}>De-active</p>)}</material.TableCell>
                                                         <material.TableCell align="right">
-                                                            <material.IconButton title='Edit Organisation' aria-label="create" size="large" onClick={() => viewUserDetails({ ...row, "readOnly": false, "callFrom": "edit" })}>
-                                                                <material.CreateIcon color='primary' />
-                                                            </material.IconButton>
+                                                            {row.role === "INJECTOR" ? (
+                                                                <material.IconButton title='Edit Organisation' aria-label="create" size="large" onClick={() => viewUserDetails({ ...row, "readOnly": false, "callFrom": "edit" })}>
+                                                                    <material.CreateIcon color='primary' />
+                                                                </material.IconButton>
+                                                            ) : ""}
                                                             <material.IconButton title='Delete Organisation' aria-label="delete" size="large" onClick={() => deleteUser(row.orgId)}>
                                                                 <material.DeleteIcon color='warning' />
                                                             </material.IconButton>
@@ -211,4 +219,10 @@ const Usermanagement = () => {
     );
 };
 
-export default Usermanagement;
+const mapStateToProps = (state) => {
+    return {
+        userData: state,
+    };
+};
+
+export default connect(mapStateToProps)(Usermanagement);

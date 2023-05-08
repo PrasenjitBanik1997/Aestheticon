@@ -6,9 +6,10 @@ import { connect } from 'react-redux';
 
 function Sidenav(props) {
 
-    const { open, setOpen, user } = props;
+    const { open, setOpen, user, clinicData } = props;
 
     let userDetails = user.authReducer.data
+    let clinicDetails = clinicData.clinicReducer.data;
 
     function expend() {
         setOpen(true)
@@ -47,7 +48,7 @@ function Sidenav(props) {
                             </NavLink>
                         </div>
                     </>
-                ) : userDetails.role === "MANAGER" ? (
+                ) : userDetails.role === "MANAGER" || clinicDetails.clinicName ? (
                     <>
                         <div>
                             <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/dashboard">
@@ -55,6 +56,12 @@ function Sidenav(props) {
                             </NavLink>
                         </div>
                     </>
+                ) : userDetails.role === "INJECTOR" ? (
+                    <div className='mt-1' hidden={clinicDetails.clinicName}>
+                        <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/clinic" >
+                            <material.MedicalServicesOutlinedIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Clinic</span>) : null}
+                        </NavLink>
+                    </div>
                 ) : ""}
             </div>
         </material.Paper>
@@ -64,6 +71,7 @@ function Sidenav(props) {
 const mapStateToProps = (state) => {
     return {
         user: state,
+        clinicData: state
     };
 };
 

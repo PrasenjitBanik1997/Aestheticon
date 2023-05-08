@@ -47,7 +47,7 @@ function Addorganisation(props) {
                 })
             })
         } else if (organisatioDetails.parentComponent === "clinic") {
-            await createClinic({ ...formData, "orgId": userDetails.orgId })
+            await createClinic(formData)
                 .then((res) => {
                     reset()
                     setOpenSnackBar({

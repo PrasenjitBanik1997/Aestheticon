@@ -4,6 +4,9 @@ import { connect } from 'react-redux';
 import { material } from '../../library/material'
 import { getClinicList, getOrgList, inviteUser, userRegisterByAdmin, userRegisterBySuperAdmin } from '../../services/UserManagementService';
 import Snackbar from '../toastrmessage/Snackbar';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { dateFormat } from '../../date-and-time-format/DateAndTimeFormat';
 
 let organisationDetails;
 let organisationId;
@@ -26,6 +29,7 @@ function InviteUser(props) {
     });
     const [organisation, setOrganisation] = useState([]);
     const [clinicData, setClinicData] = useState([]);
+    const [dateOfBirth, setDateOfBirth] = React.useState();
 
     useEffect(() => {
         if (userDetails.role === "SUPERADMIN") {
@@ -33,7 +37,7 @@ function InviteUser(props) {
         } else if (userDetails.role === "ADMIN") {
             getAllClinic();
         }
-    }, [])
+    }, []);
 
     const getAllOrg = async () => {
         await getOrgList()
@@ -54,13 +58,8 @@ function InviteUser(props) {
     };
 
     const selectOrg = (e, value) => {
-        if (userDetails.role === "SUPERADMIN") {
-            let orgId = organisationDetails.filter((ele) => ele.orgName === value).map((element) => element.orgId)
-            organisationId = orgId
-        } else if (userDetails.role === "ADMIN") {
-            let id = clinicDetalis.filter((ele) => ele.clinicName === value).map((element) => element.clinicId)
-            clinicId = id
-        }
+        let orgId = organisationDetails.filter((ele) => ele.orgName === value).map((element) => element.orgId)
+        organisationId = orgId
     };
 
     const handleClose = () => {
@@ -69,7 +68,17 @@ function InviteUser(props) {
 
     const roleChange = (event) => {
         setRole(event.target.value)
-    }
+    };
+
+    const selectClinic = (e, value) => {
+        let id = clinicDetalis.filter((ele) => ele.clinicName === value).map((res) => res.clinicId)
+        clinicId = id
+    };
+
+    const selectMultipleClinic = (e, value) => {
+        let id = clinicDetalis.filter((ele) => value.includes(ele.clinicName)).map((res) => res.clinicId)
+        clinicId = id
+    };
 
     const inviteUserByMail = async (fromData) => {
         await inviteUser(fromData).then((res) => {
@@ -94,6 +103,9 @@ function InviteUser(props) {
     const addUserByOrg = async (fromData) => {
         if (userDetails.role === "SUPERADMIN") {
             let obj = {
+                "firstName": fromData.firstName,
+                "lastName": fromData.lastName,
+                "dateOfBirth": dateFormat(dateOfBirth),
                 "role": fromData.role,
                 "email": fromData.email,
                 "orgId": organisationId[0],
@@ -119,10 +131,13 @@ function InviteUser(props) {
                 })
         } else if (userDetails.role === "ADMIN") {
             let obj = {
+                "firstName": fromData.firstName,
+                "lastName": fromData.lastName,
+                "dateOfBirth": dateFormat(dateOfBirth),
                 "role": fromData.role,
                 "email": fromData.email,
                 "orgId": userDetails.orgId,
-                "clinicId": clinicId[0],
+                "clinicId": clinicId,
                 "password": fromData.password
             }
             await userRegisterByAdmin(obj)
@@ -149,13 +164,49 @@ function InviteUser(props) {
 
 
     return (
-        <div sx={{ width: "25%" }}>
+        <div style={{ width: "25%" }}>
             <form >
                 <material.Dialog fullWidth open={openInvitePoup.open} hideBackdrop >
                     {openInvitePoup.action === "add-user" ? (
                         <>
                             <material.DialogTitle>Add User For Organisation</material.DialogTitle>
-                            <material.DialogContent>
+                            <material.DialogContent sx={{ height: "50vh" }}>
+                                <material.TextField
+                                    {...register("firstName", { required: true })}
+                                    autoFocus
+                                    margin="dense"
+                                    id="name"
+                                    label="First Name"
+                                    type="email"
+                                    fullWidth
+                                    variant="standard"
+                                />
+                                <material.TextField
+                                    {...register("lastName", { required: true })}
+                                    autoFocus
+                                    margin="dense"
+                                    id="name"
+                                    label="Last Name"
+                                    type="email"
+                                    fullWidth
+                                    variant="standard"
+                                />
+                                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                    <material.DesktopDatePicker
+                                        label="Date of Birth"
+                                        value={dateOfBirth}
+                                        onChange={(newValue) => {
+                                            setDateOfBirth(newValue)
+                                        }}
+                                        renderInput={(params) => <material.TextField {...params}
+                                            error={errors.dateOfBirth?.type === "required"}
+                                            {...register("dateOfBirth", { required: true })}
+                                            variant="standard"
+                                            fullWidth
+                                            sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                        />}
+                                    />
+                                </LocalizationProvider>
                                 <material.TextField
                                     {...register("email", { required: true, pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i })}
                                     autoFocus
@@ -179,7 +230,8 @@ function InviteUser(props) {
                                         onChange={roleChange}
                                     >
                                         <material.MenuItem value="ADMIN">ADMIN</material.MenuItem>
-                                        <material.MenuItem value="MANAGER">MANAGER</material.MenuItem>
+                                        <material.MenuItem value="MANAGER" hidden={userDetails.role === "SUPERADMIN"}>MANAGER</material.MenuItem>
+                                        <material.MenuItem value="INJECTOR" hidden={userDetails.role === "SUPERADMIN"}>INJECTOR</material.MenuItem>
                                     </material.Select>
                                 </material.FormControl>
                                 {userDetails.role === "SUPERADMIN" ? (
@@ -195,12 +247,12 @@ function InviteUser(props) {
                                             })}
                                         />}
                                     />
-                                ) : userDetails.role === "ADMIN" ? (
+                                ) : userDetails.role === "ADMIN" && role !== "INJECTOR" ? (
                                     <material.Autocomplete
                                         fullWidth
                                         id="orgId"
                                         className='mt-2'
-                                        onChange={selectOrg}
+                                        onChange={selectClinic}
                                         options={clinicData}
                                         renderInput={(params) => <material.TextField {...params} variant="standard" label="Clinic Name"
                                             {...register("clinicName", {
@@ -209,7 +261,18 @@ function InviteUser(props) {
                                         />}
                                     />
                                 ) : null}
-
+                                {role === "INJECTOR" ? (
+                                    <material.Autocomplete
+                                        multiple
+                                        fullWidth
+                                        id="orgId"
+                                        className='mt-2'
+                                        onChange={selectMultipleClinic}
+                                        options={clinicData}
+                                        renderInput={(params) => <material.TextField {...params} variant="standard" label="Clinic Name"
+                                        />}
+                                    />
+                                ) : null}
                                 <material.TextField
                                     {...register("password", { required: true })}
                                     autoFocus

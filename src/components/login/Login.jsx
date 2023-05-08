@@ -43,16 +43,16 @@ function Login(props) {
           "type": "success",
           "message": "You have succesfully logedin",
         })
-        setTimeout(()=>{
-          if(res.data.role === "SUPERADMIN"){
+        setTimeout(() => {
+          if (res.data.role === "SUPERADMIN") {
             navigate("/organisation")
-          } else if(res.data.role === "ADMIN"){
+          } else if (res.data.role === "ADMIN" || res.data.role === "INJECTOR") {
             navigate("/clinic")
-          } else if(res.data.role === "MANAGER"){
+          } else if (res.data.role === "MANAGER") {
             navigate("/dashboard")
           }
           reset()
-        },500);
+        }, 500);
       }).catch(() => {
         setOpenSnackBar({
           "action": true,

@@ -8,11 +8,11 @@ export const getAllClinic = async () => {
 };
 
 export const createClinic = async (clinicInformation) => {
-    return await axios.post(`${rootApiUrl}/add-clinic`,clinicInformation);
+    return await axios.post(`${rootApiUrl}/add-clinic`, clinicInformation);
 };
 
 export const updateClinic = async (updateClinicInformation) => {
-    return await axios.put(`${rootApiUrl}/update-clinic`,updateClinicInformation);
+    return await axios.put(`${rootApiUrl}/update-clinic`, updateClinicInformation);
 };
 
 export const activeOrDeactiveClinic = async (clinicId) => {
@@ -21,4 +21,8 @@ export const activeOrDeactiveClinic = async (clinicId) => {
 
 export const deleteClinicById = async (clinicId) => {
     return await axios.put(`${rootApiUrl}/delet-clinic-by-clinic-id/${clinicId}`);
-}
+};
+
+export const getClinicForInjector = async () => {
+    return await axios.get(`${rootApiUrl}/get-clinic-details-for-injector`);
+};

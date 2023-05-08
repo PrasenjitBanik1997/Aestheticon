@@ -4,6 +4,9 @@ import { useForm } from "react-hook-form"
 import { getInviteDetails, registerByInvite } from '../../services/OrganisationService';
 import Snackbar from '../toastrmessage/Snackbar';
 import { useNavigate } from 'react-router-dom';
+import { dateFormat } from '../../date-and-time-format/DateAndTimeFormat';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 
 function AddorgByInvite() {
@@ -17,9 +20,11 @@ function AddorgByInvite() {
     "type": "",
     "message": "",
   });
+  const [dateOfBirth, setDateOfBirth] = React.useState();
+
 
   const addOrganisation = async (formData) => {
-    await registerByInvite(formData).then((res) => {
+    await registerByInvite({ ...formData, dateOfBirth: dateFormat(dateOfBirth) }).then((res) => {
       setOpenSnackBar({
         "action": true,
         "type": "success",
@@ -49,10 +54,6 @@ function AddorgByInvite() {
 
 
   }
-
-
-
-
 
   return (
     <div className='p-4 mt-2' >
@@ -468,23 +469,57 @@ function AddorgByInvite() {
                 InputProps={{ readOnly: true }}
               />
             </div>
-            {/* <div className="col-lg-3 col-md-6 col-sm-12">
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <material.DateTimePicker
-                        label="Date&Time"
-                        value={value}
-                        onChange={(newValue) => {
-                            setValue(newValue)
-                        }}
-                        renderInput={(params) => <material.TextField {...params}
-                            {...register("timeStamp", { required: true })}
-                            variant="standard"
-                            fullWidth
-                            sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
-                        />}
-                    />
-                </LocalizationProvider>
-            </div> */}
+            <div className="col-lg-3 col-md-6 col-sm-12">
+              <material.TextField
+                error={errors.password?.type === "required"}
+                {...register("firstName", { required: true })}
+                label="First Name"
+                id="standard-size-small"
+                variant="standard"
+                // defaultValue={value.email}
+                size="small"
+                type='text'
+                disabled={isEnableFormField}
+                fullWidth
+                sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                // InputProps={{ readOnly: true }}
+              />
+            </div>
+            <div className="col-lg-3 col-md-6 col-sm-12">
+              <material.TextField
+                error={errors.password?.type === "required"}
+                {...register("lastName", { required: true })}
+                label="Last Name"
+                id="standard-size-small"
+                variant="standard"
+                // defaultValue={value.email}
+                size="small"
+                type='text'
+                disabled={isEnableFormField}
+                fullWidth
+                sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                // InputProps={{ readOnly: true }}
+              />
+            </div>
+            <div className="col-lg-3 col-md-6 col-sm-12">
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <material.DesktopDatePicker
+                  label="Date of Birth"
+                  value={dateOfBirth}
+                  onChange={(newValue) => {
+                    setDateOfBirth(newValue)
+                  }}
+                  renderInput={(params) => <material.TextField {...params}
+                    error={errors.dateOfBirth?.type === "required"}
+                    {...register("dateOfBirth", { required: true })}
+                    variant="standard"
+                    fullWidth
+                    sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                    disabled={isEnableFormField}
+                  />}
+                />
+              </LocalizationProvider>
+            </div>
             <div className="col-lg-12 col-md-12 col-sm-12">
               <span className='float-end'><material.Button variant="contained" size="medium" className=" mt-3 " onClick={handleSubmit(addOrganisation)} disabled={!isValid}>Submit</material.Button></span>
             </div>

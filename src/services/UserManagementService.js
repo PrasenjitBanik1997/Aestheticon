@@ -29,3 +29,7 @@ export const getUsersList = async () => {
 export const activeOrDeactiveUser = async (userId) => {
     return await axios.put(`${rootApiUrl}/toggle-user-active-status/${userId}`);
 };
+
+export const updateInjector = async (injectorDetails) => {
+    return await axios.post(`${rootApiUrl}/save-or-update-injector-details`, injectorDetails);
+};

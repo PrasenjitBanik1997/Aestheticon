@@ -8,12 +8,12 @@ import { connect } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { addNewPatient } from '../../../services/PatientService';
 import Snackbar from '../../toastrmessage/Snackbar';
-import { dateAndTimeFormat } from '../../../date-and-time-format/DateAndTimeFormat';
+import { dateAndTimeFormat, dateFormat } from '../../../date-and-time-format/DateAndTimeFormat';
 import AddPatientHistory from '../../dialog/AddPatientHistory';
 
 
 let patientHistory = [];
-let history=[];
+let history = [];
 
 function AddPatient(props) {
 
@@ -27,8 +27,9 @@ function AddPatient(props) {
     });
     const [openHistory, setOpenHistory] = useState(false);
 
-    const { userData } = props;
+    const { userData, clinicData } = props;
     let userDetails = userData.authReducer.data;
+    let clinicDetails = clinicData.clinicReducer.data;
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -43,6 +44,7 @@ function AddPatient(props) {
         setDateOfBirth(patientData ? patientData.dateOfBirth : dateOfBirth);
         setDate(patientData ? patientData.createdAt : date);
         setSelectValue(patientData ? patientData.gender : selectValue);
+        console.log(userDetails)
     });
 
     const goBack = () => {
@@ -58,12 +60,12 @@ function AddPatient(props) {
 
     const addPatient = async (fromData) => {
         let obj = {
-            "clinicId": userDetails.clinicId[0],
+            "clinicId": userDetails.role === "INJECTOR" ? clinicDetails.clinicId : userDetails.clinicId[0],
             "orgId": userDetails.orgId,
             "title": "as",
             "firstName": fromData.firstName,
             "lastName": fromData.lastName,
-            "dateOfBirth": dateAndTimeFormat(dateOfBirth),
+            "dateOfBirth": dateFormat(dateOfBirth),
             "gender": selectValue,
             "medicareNumber": fromData.medicareNumber,
             "medicareNumberReference": fromData.medicareNumberReference,
@@ -106,6 +108,10 @@ function AddPatient(props) {
         setOpenHistory(true)
     };
 
+    const openTreatmentPlan = () => {
+        navigate("/dashboard/patient-list/edit-patient/treatment-plan", { state: { patientData } })
+    }
+
 
     return (
         <div className='body'>
@@ -113,13 +119,16 @@ function AddPatient(props) {
             <div className='row'>
                 <div className='col-6'>
                     {patientData ? (
-                        <span><material.Typography variant="h5">Patient Details</material.Typography></span>
+                        <span><material.Typography variant="h5">Show Patient Details</material.Typography></span>
                     ) : (
                         <span><material.Typography variant="h5">Add Patient</material.Typography></span>
                     )}
                 </div>
                 <div className='col-6'>
                     <span className="float-end">
+                        {userDetails.role === "INJECTOR" ? (
+                            <material.Button variant="contained" className='me-2' onClick={openTreatmentPlan} startIcon={<material.ScheduleIcon />} hidden={!patientData} >Schedule Treatment</material.Button>
+                        ) : ""}
                         <material.Button variant="contained" onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
                     </span>
                 </div>
@@ -146,7 +155,7 @@ function AddPatient(props) {
                             id="standard-error"
                             variant="standard"
                             type="text"
-                            value={userDetails.clinicId}
+                            value={userDetails.role === "INJECTOR" ? clinicDetails.clinicId : userDetails.clinicId[0]}
                             size="small"
                             fullWidth
                             InputProps={{ readOnly: true }}
@@ -157,7 +166,7 @@ function AddPatient(props) {
                     <div className="col-lg-3 col-md-6 col-sm-12">
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                             <material.DateTimePicker
-                                label="Date&Time"
+                                label="Date Of Entry"
                                 value={date}
                                 onChange={(newValue) => {
                                     setDate(newValue)
@@ -349,7 +358,7 @@ function AddPatient(props) {
                     <div className='col-lg-6 col-md-6 col-sm-6'>
                         <span className='float-end'>
                             <material.Button variant="contained" size="medium" onClick={openAddHistory} startIcon={<material.AddIcon />}>
-                                Add History
+                                Add-History
                             </material.Button>
                         </span>
                     </div>
@@ -384,16 +393,15 @@ function AddPatient(props) {
                         </span>
                     </div>
                 </div >
-                {
-                    patientData.action === "edit" ? (
-                        <div className='mt-5 pb-5'>
-                            <span className='float-end'>
-                                <material.Button variant="contained" size="medium" onClick={showPatientHistory}>
-                                    Show Patient History
-                                </material.Button>
-                            </span>
-                        </div>
-                    ) : null
+                {patientData.action === "edit" ? (
+                    <div className='mt-5 pb-5'>
+                        <span className='float-end'>
+                            <material.Button variant="contained" size="medium" onClick={showPatientHistory}>
+                                Show Patient History
+                            </material.Button>
+                        </span>
+                    </div>
+                ) : null
                 }
             </material.Paper>
             <Snackbar
@@ -412,6 +420,7 @@ function AddPatient(props) {
 const mapStateToProps = (state) => {
     return {
         userData: state,
+        clinicData: state
     };
 };
 

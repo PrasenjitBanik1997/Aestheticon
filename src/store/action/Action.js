@@ -21,3 +21,12 @@ export function logoutAction(initialState, navigate) {
         sessionStorage.removeItem("main-root")
     }
 };
+
+export function getClinicAction(data) {
+    return (dispatch) => {
+        try {
+            dispatch({ type: authActionType.CLINIC_ID, payload: data })
+        } catch (error) {
+        }
+    }
+};
