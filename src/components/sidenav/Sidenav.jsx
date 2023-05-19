@@ -3,20 +3,21 @@ import { material } from '../../library/material';
 import { NavLink } from 'react-router-dom';
 import "./Sidenav.css"
 import { connect } from 'react-redux';
+import { mt } from 'date-fns/locale';
 
 function Sidenav(props) {
 
-    const { open, setOpen, user, clinicData } = props;
+    const { openSideNav, setOpenSideNav, userData, clinicData } = props;
 
-    let userDetails = user.authReducer.data
+    let userDetails = userData.authReducer.data
     let clinicDetails = clinicData.clinicReducer.data;
 
     function expend() {
-        setOpen(true)
+        setOpenSideNav(true)
     }
 
     function collapse() {
-        setOpen(false)
+        setOpenSideNav(false)
     }
 
     return (
@@ -26,40 +27,40 @@ function Sidenav(props) {
                     <>
                         <div>
                             <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/organisation">
-                                <material.ApartmentIcon sx={{ fontSize: "60px", padding: "10px" }} />{open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Organisation</span>) : null}
+                                <material.ApartmentIcon sx={{ fontSize: 35, ml: 2 }} />{openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Organisation</span>) : null}
                             </NavLink>
                         </div>
-                        <div className='mt-1'>
+                        <div className='mt-3'>
                             <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/user_management" >
-                                <material.ManageAccountsIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>User Management</span>) : null}
+                                <material.ManageAccountsIcon sx={{ fontSize: 35, ml: 2 }} /> {openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>User Management</span>) : null}
                             </NavLink>
                         </div>
                     </>
                 ) : userDetails.role === "ADMIN" ? (
                     <>
-                        <div className='mt-1'>
+                        <div className='mt-3'>
                             <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/clinic" >
-                                <material.MedicalServicesOutlinedIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Clinic</span>) : null}
+                                <material.MedicalServicesOutlinedIcon sx={{ fontSize: 35, ml: 2 }} /> {openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Clinic</span>) : null}
                             </NavLink>
                         </div>
-                        <div className='mt-1'>
+                        <div className='mt-3'>
                             <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/user_management" >
-                                <material.ManageAccountsIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>User Management</span>) : null}
+                                <material.ManageAccountsIcon sx={{ fontSize: 35, ml: 2 }} /> {openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>User Management</span>) : null}
                             </NavLink>
                         </div>
                     </>
-                ) : userDetails.role === "MANAGER" || clinicDetails.clinicName ? (
+                ) : userDetails.role === "MANAGER" || clinicDetails.clinicName || userDetails.role === "PRESCRIBER" ? (
                     <>
                         <div>
                             <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/dashboard">
-                                <material.DashboardIcon sx={{ fontSize: "60px", padding: "10px" }} />{open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Dashboard</span>) : null}
+                                <material.DashboardIcon sx={{ fontSize: 35, ml: 2 }} />{openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Dashboard</span>) : null}
                             </NavLink>
                         </div>
                     </>
                 ) : userDetails.role === "INJECTOR" ? (
-                    <div className='mt-1' hidden={clinicDetails.clinicName}>
+                    <div className='mt-3' hidden={clinicDetails.clinicName}>
                         <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/clinic" >
-                            <material.MedicalServicesOutlinedIcon sx={{ fontSize: "60px", padding: "10px" }} /> {open === true ? (<span className='ms-2' style={{ fontSize: "20px" }}>Clinic</span>) : null}
+                            <material.MedicalServicesOutlinedIcon sx={{ fontSize: 35, ml: 2 }} /> {openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Clinic</span>) : null}
                         </NavLink>
                     </div>
                 ) : ""}
@@ -70,7 +71,7 @@ function Sidenav(props) {
 
 const mapStateToProps = (state) => {
     return {
-        user: state,
+        userData: state,
         clinicData: state
     };
 };

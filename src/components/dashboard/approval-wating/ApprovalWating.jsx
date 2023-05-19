@@ -22,13 +22,14 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const label = { inputProps: { 'aria-label': 'Color switch demo' } };
-let allPatientData;
+
+var allPatientData;
 
 function ApprovalWating(props) {
 
     const [patientData, setPatientData] = useState([]);
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(20);
     const [isLoading, setisLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -74,6 +75,10 @@ function ApprovalWating(props) {
         }
     };
 
+    const showTreatmentPlan = (treatmentPlanDetails) => {
+        navigate("/dashboard/patient-waiting-list/treatment-plan-details", { state: { treatmentPlanDetails } })
+    }
+
     return (
         <div className='body'>
             <Swipedrawer />
@@ -102,7 +107,9 @@ function ApprovalWating(props) {
                             <material.Table stickyHeader aria-label="sticky table">
                                 <material.TableHead >
                                     <material.TableRow>
+                                        <StyledTableCell>Patient Name</StyledTableCell>
                                         <StyledTableCell>Patient ID</StyledTableCell>
+                                        {/* <StyledTableCell >Clinic Name</StyledTableCell> */}
                                         <StyledTableCell>Created At</StyledTableCell>
                                         <StyledTableCell>Status</StyledTableCell>
                                     </material.TableRow>
@@ -122,15 +129,34 @@ function ApprovalWating(props) {
                                                 <material.TableRow
                                                     key={i}
                                                     sx={{
-                                                        '&:last-child td, &:last-child th': { border: 0 }
+                                                        '&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer",
+                                                        ":hover": { backgroundColor: "lightgray" }
                                                     }}
+                                                    onClick={() => showTreatmentPlan({ ...row, "parentComponent": "approvalWating" })}
                                                 >
-                                                    <material.TableCell sx={{ pt: 2, pb: 2 }} size='small' component="th" scope="row">{row.patientId} </material.TableCell>
-                                                    <material.TableCell size='small'>{localDateTimeFormat(row.createdAt)}</material.TableCell>
+                                                    <material.TableCell sx={{ pt: 2, pb: 2 }} size='small' scope="row">{row.patientName} </material.TableCell>
+                                                    <material.TableCell size='small' scope="row">{row.patientId} </material.TableCell>
+                                                    {/* <material.TableCell size='small'>{row.clinicName}</material.TableCell> */}
+                                                    <material.TableCell size='small'>{localDateTimeFormat(row.timeStamp)}</material.TableCell>
                                                     <material.TableCell size='small'>
                                                         {row.status === "PENDING" ? (
-                                                            <span className="badge bg-danger">
+                                                            <span className="badge" style={{ backgroundColor: "yellowgreen" }}>
                                                                 PENDING
+                                                            </span>
+                                                        ) : null}
+                                                        {row.status === "REJECTED" ? (
+                                                            <span className="badge bg-danger">
+                                                                REJECTED
+                                                            </span>
+                                                        ) : null}
+                                                        {row.status === "APPROVED" ? (
+                                                            <span className="badge bg-success">
+                                                                APPROVED
+                                                            </span>
+                                                        ) : null}
+                                                        {row.status === "DRAFT" ? (
+                                                            <span className="badge" style={{ backgroundColor: "gray" }}>
+                                                                DRAFT
                                                             </span>
                                                         ) : null}
                                                     </material.TableCell>

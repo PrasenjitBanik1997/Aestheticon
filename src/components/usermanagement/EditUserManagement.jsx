@@ -29,14 +29,14 @@ function EditUserMangement(props) {
     useEffect(() => {
         setDateOfBirth(userData.dateOfBirth ? userData.dateOfBirth : dateOfBirth);
         setDate(userData.createdAt ? userData.createdAt : date);
-        setSelectGender(userData.genger ? userData.genger : selectGender)
+        setSelectGender(userData.gender ? userData.gender : selectGender)
     }, [])
 
     const goBack = () => {
         navigate("/user_management")
     }
 
-    const handleChange = (event) => {
+    const changeGender = (event) => {
         setSelectGender(event.target.value)
     };
 
@@ -135,7 +135,7 @@ function EditUserMangement(props) {
                                 row
                                 aria-labelledby="demo-row-radio-buttons-group-label"
                                 name="row-radio-buttons-group"
-                                onChange={handleChange}
+                                onChange={changeGender}
                                 value={selectGender}
                             >
                                 <material.FormControlLabel value="MALE" control={<material.Radio color="secondary" />} label="Male" />

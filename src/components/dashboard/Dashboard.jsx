@@ -52,26 +52,24 @@ function Dashboard(props) {
 
     const handleClick = (value) => {
         if (value.action === "patientManagement") {
-            if (clinicName.length) {
-                setHideAndShow(false)
-            } else {
-                navigate("/dashboard/patient-list");
-            };
+            navigate("/dashboard/patient-list");
         } else if (value.action === "injectorManagement") {
             navigate("/dashboard/injector-list");
         } else if (value.action === "approvalWaiting") {
             navigate("/dashboard/approval-waiting-quere");
         } else if (value.action === "approvalRequest") {
             navigate("/dashboard/approval-requests");
+        } else if (value.action === "watingRoom") {
+            navigate("/dashboard/waiting-room");
         }
     };
 
-    const selectClinic = (e, value) => {
-        let clinicData = clinicDetalis.filter((ele) => ele.clinicName === value);
-        clinicId = clinicData.map((resp) => resp.clinicId)
-        getClinicDetails(...clinicData);
-        navigate("/dashboard/patient-list");
-    };
+    // const selectClinic = (e, value) => {
+    //     let clinicData = clinicDetalis.filter((ele) => ele.clinicName === value);
+    //     clinicId = clinicData.map((resp) => resp.clinicId)
+    //     getClinicDetails(...clinicData);
+    //     navigate("/dashboard/patient-list");
+    // };
 
 
     return (
@@ -81,7 +79,7 @@ function Dashboard(props) {
                 {/* <div className='col-12'>
                     <ClinicList />
                 </div> */}
-                <div className='col-lg-3 col-md-6 col-sm-12 mt-3'>
+                <div className='col-lg-3 col-md-6 col-sm-12 mt-3' hidden={userDetails.role === "PRESCRIBER"}>
                     <material.Card sx={{ backgroundColor: "lightblue" }}>
                         <material.CardActionArea onClick={() => handleClick({ "action": "patientManagement" })} sx={{ pt: 3, pb: 3 }}>
                             <material.CardContent>
@@ -150,108 +148,32 @@ function Dashboard(props) {
                         </div>
                         {/* </div> */}
                     </>
+                ) : userDetails.role === "PRESCRIBER" ? (
+                    <>
+                        <div className='col-lg-3 col-md-6 col-sm-12 mt-3'>
+                            <material.Card sx={{ backgroundColor: "lightblue" }}>
+                                <material.CardActionArea sx={{ pt: 3, pb: 3 }} onClick={() => handleClick({ "action": "watingRoom" })}>
+                                    <material.CardContent>
+                                        <h6 className='text-center'>Waiting Room</h6>
+                                    </material.CardContent>
+                                </material.CardActionArea>
+                            </material.Card>
+                        </div>
+                        <div className='col-lg-3 col-md-6 col-sm-12 mt-3'>
+                            <material.Card sx={{ backgroundColor: "lightblue" }}>
+                                <material.CardActionArea sx={{ pt: 3, pb: 3 }} onClick={() => handleClick({ "action": "previouslyApproved" })}>
+                                    <material.CardContent>
+                                        <h6 className='text-center'>Previously Approved / Rejected Request</h6>
+                                    </material.CardContent>
+                                </material.CardActionArea>
+                            </material.Card>
+                        </div>
+                    </>
                 ) : null}
             </div>
         </div>
     );
 };
-
-const ClinicList = () => {
-
-    const [clinicData, setClinicData] = useState([]);
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
-    const [isLoading, setisLoading] = useState(true);
-
-
-    useEffect(() => {
-        clinicDetailsForInjector()
-    })
-
-    const clinicDetailsForInjector = async () => {
-        await getClinicForInjector()
-            .then((resp) => {
-                setClinicData(resp.data)
-                setisLoading(false)
-            })
-            .catch((error) => {
-
-            })
-    };
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(+event.target.value);
-        setPage(0);
-    };
-
-    const selectClinic = (clinicData) => {
-        console.log(clinicData)
-    }
-
-    return (
-        <div>
-            <div className="row mt-3">
-                <div className="col-12">
-                    <material.Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                        <material.TableContainer sx={{ maxHeight: 460 }}>
-                            <material.Table stickyHeader aria-label="sticky table">
-                                <material.TableHead >
-                                    <material.TableRow>
-                                        <StyledTableCell >Clinic ID</StyledTableCell>
-                                        <StyledTableCell>Clinic Name</StyledTableCell>
-                                    </material.TableRow>
-                                </material.TableHead>
-                                <material.TableBody>
-                                    {isLoading ? (
-                                        <material.TableRow >
-                                            <material.TableCell colSpan={6}>
-                                                <SkeletonTheme baseColor="#bbdefb" highlightColor="#c6ff00" enableAnimation="true" inline="true" width="100% " height="30px">
-                                                    <Skeleton count={10} />
-                                                </SkeletonTheme>
-                                            </material.TableCell>
-                                        </material.TableRow>
-                                    ) : (
-                                        <>
-                                            {clinicData.length ? clinicData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => (
-                                                <material.TableRow
-                                                    key={i}
-                                                    sx={{'&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer",":hover": { backgroundColor: "lightgray" }}}
-                                                    onClick={() => selectClinic(row)}
-                                                >
-                                                    <material.TableCell sx={{ pt: 3, pb: 3 }} size='small' component="th" scope="row">{row.clinicId}  </material.TableCell>
-                                                    <material.TableCell sx={{ pt: 3, pb: 3 }} size='small'>{row.clinicName}</material.TableCell>
-                                                </material.TableRow>
-                                            )) : (
-                                                <material.TableRow >
-                                                    <material.TableCell colSpan={6}>
-                                                        <h6 className='d-flex justify-content-center text-danger fw-bold'>No data found</h6>
-                                                    </material.TableCell>
-                                                </material.TableRow>
-                                            )}
-                                        </>)}
-                                </material.TableBody>
-                            </material.Table>
-                        </material.TableContainer>
-                        <hr />
-                        <material.TablePagination
-                            rowsPerPageOptions={[5, 10, 20]}
-                            component="div"
-                            count={clinicData.length}
-                            rowsPerPage={rowsPerPage}
-                            page={page}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                        />
-                    </material.Paper>
-                </div>
-            </div>
-        </div>
-    )
-}
 
 const mapStateToProps = (state) => {
     return {

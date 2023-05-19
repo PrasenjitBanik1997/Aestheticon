@@ -26,7 +26,7 @@ const initialState = {
 
 function Navbar(props) {
 
-  const { handleDrawer, open, user, authLogout } = props;
+  const { handleDrawer, openSideNav, user, authLogout } = props;
   let userDetails = user.authReducer.data;
   const navigate = useNavigate();
 
@@ -44,7 +44,7 @@ function Navbar(props) {
   return (
     <div>
       <material.Box>
-        <Header open={open} style={{ backgroundColor: "#87CEFA" }}>
+        <Header open={openSideNav} style={{ backgroundColor: "#87CEFA" }}>
           <material.Container maxWidth="xl">
             <material.Toolbar disableGutters>
               <material.IconButton

@@ -50,21 +50,21 @@ const Drawer = styled(material.MuiDrawer, {
   }),
 }));
 export default function Swipedrawer() {
-    const [open, setOpen] = React.useState(false);
+    const [openSideNav, setOpenSideNav] = React.useState(false);
 
     // let elem=document.getElementsByClassName("body")
     // elem.style.width = 
     const handleDrawer = () => {
-      setOpen((prevState) => !prevState);
+      setOpenSideNav((prevState) => !prevState);
     };
   
   return (
     <div>
     <material.Box sx={{ display: "flex" }}>
-      <Navbar open={open} handleDrawer={handleDrawer} />
-      <Drawer variant="permanent" open={open}>
+      <Navbar openSideNav={openSideNav} handleDrawer={handleDrawer} />
+      <Drawer variant="permanent" open={openSideNav}>
         <DrawerHeader></DrawerHeader>
-        <Sidenav open={open} setOpen={setOpen}/>
+        <Sidenav openSideNav={openSideNav} setOpenSideNav={setOpenSideNav}/>
       </Drawer>
       <material.Box
         component="main"

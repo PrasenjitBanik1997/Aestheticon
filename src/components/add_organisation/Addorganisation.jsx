@@ -22,7 +22,6 @@ function Addorganisation(props) {
         mode: "onTouched",
         defaultValues: organisatioDetails ? organisatioDetails : ""
     });
-    const [value, setValue] = React.useState(moment().format("MM-DD-YYYY, HH:mm"));
     const navigate = useNavigate();
     const [openSnackBar, setOpenSnackBar] = useState({
         "action": false,

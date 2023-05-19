@@ -6,7 +6,7 @@ import { getClinicList, getOrgList, inviteUser, userRegisterByAdmin, userRegiste
 import Snackbar from '../toastrmessage/Snackbar';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { dateFormat } from '../../date-and-time-format/DateAndTimeFormat';
+import { dateAndTimeFormat, dateFormat } from '../../date-and-time-format/DateAndTimeFormat';
 
 let organisationDetails;
 let organisationId;
@@ -17,7 +17,7 @@ function InviteUser(props) {
     const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm({
         mode: "onTouched"
     });
-    const { openInvitePoup, setOpenInvitePoup, userData, getAllUserList, setisLoading } = props;
+    const { openInvitePopup, setOpenInvitePopup, userData, getAllUserList, setisLoading } = props;
 
     let userDetails = userData.authReducer.data;
 
@@ -30,6 +30,10 @@ function InviteUser(props) {
     const [organisation, setOrganisation] = useState([]);
     const [clinicData, setClinicData] = useState([]);
     const [dateOfBirth, setDateOfBirth] = React.useState();
+    const [date, setDate] = React.useState();
+    const [selectValue, setSelectValue] = useState('');
+    const [endDate, setEndDate] = React.useState();
+    const [startDate, setStartDate] = React.useState();
 
     useEffect(() => {
         if (userDetails.role === "SUPERADMIN") {
@@ -63,7 +67,7 @@ function InviteUser(props) {
     };
 
     const handleClose = () => {
-        setOpenInvitePoup(false);
+        setOpenInvitePopup(false);
     };
 
     const roleChange = (event) => {
@@ -80,6 +84,10 @@ function InviteUser(props) {
         clinicId = id
     };
 
+    const handleChange = (event) => {
+        setSelectValue(event.target.value)
+    };
+
     const inviteUserByMail = async (fromData) => {
         await inviteUser(fromData).then((res) => {
             reset({ email: "" })
@@ -89,7 +97,7 @@ function InviteUser(props) {
                 "type": "success",
                 "message": "Invite send successfully"
             })
-            setOpenInvitePoup(false);
+            setOpenInvitePopup(false);
         }).catch((error) => {
             // console.log()
             setOpenSnackBar({
@@ -102,33 +110,69 @@ function InviteUser(props) {
 
     const addUserByOrg = async (fromData) => {
         if (userDetails.role === "SUPERADMIN") {
-            let obj = {
-                "firstName": fromData.firstName,
-                "lastName": fromData.lastName,
-                "dateOfBirth": dateFormat(dateOfBirth),
-                "role": fromData.role,
-                "email": fromData.email,
-                "orgId": organisationId[0],
-                "password": fromData.password
+            if (role === "ADMIN") {
+                let obj = {
+                    "firstName": fromData.firstName,
+                    "lastName": fromData.lastName,
+                    "dateOfBirth": dateFormat(dateOfBirth),
+                    "role": fromData.role,
+                    "email": fromData.email,
+                    "orgId": organisationId[0],
+                    "password": fromData.password
+                }
+                await userRegisterBySuperAdmin(obj)
+                    .then((resp) => {
+                        setOpenSnackBar({
+                            "action": true,
+                            "type": "success",
+                            "message": "User add successfully"
+                        })
+                        setOpenInvitePopup(false);
+                        setisLoading(true)
+                        getAllUserList()
+                    })
+                    .catch((error) => {
+                        setOpenSnackBar({
+                            "action": true,
+                            "type": "error",
+                            "message": error.message
+                        })
+                    })
+            } else if (role === "PRESCRIBER") {
+                let obj = {
+                    "firstName": fromData.firstName,
+                    "lastName": fromData.lastName,
+                    "dateOfBirth": dateFormat(dateOfBirth),
+                    "role": fromData.role,
+                    "email": fromData.email,
+                    "gender": selectValue,
+                    "AHPRA_Reg_ID": fromData.AHPRA_Reg_ID,
+                    "address": fromData.address,
+                    "startDate": dateFormat(startDate),
+                    "endDate": dateFormat(endDate),
+                    "timeStamp": dateAndTimeFormat(date),
+                    "phone": fromData.phone,
+                    "password": fromData.password
+                }
+                await userRegisterBySuperAdmin(obj)
+                    .then((resp) => {
+                        setOpenSnackBar({
+                            "action": true,
+                            "type": "success",
+                            "message": "User add successfully"
+                        })
+                        setOpenInvitePopup(false);
+                        setisLoading(true)
+                        getAllUserList()
+                    })
+                    .catch((error) => {
+                        setOpenSnackBar({
+                            "action": true,
+                            "type": "error",
+                            "message": error.message
+                        })
+                    })
             }
-            await userRegisterBySuperAdmin(obj)
-                .then((resp) => {
-                    setOpenSnackBar({
-                        "action": true,
-                        "type": "success",
-                        "message": "User add successfully"
-                    })
-                    setOpenInvitePoup(false);
-                    setisLoading(true)
-                    getAllUserList()
-                })
-                .catch((error) => {
-                    setOpenSnackBar({
-                        "action": true,
-                        "type": "error",
-                        "message": error.message
-                    })
-                })
         } else if (userDetails.role === "ADMIN") {
             let obj = {
                 "firstName": fromData.firstName,
@@ -147,7 +191,7 @@ function InviteUser(props) {
                         "type": "success",
                         "message": "User add successfully"
                     })
-                    setOpenInvitePoup(false);
+                    setOpenInvitePopup(false);
                     setisLoading(true)
                     getAllUserList()
                 })
@@ -164,10 +208,10 @@ function InviteUser(props) {
 
 
     return (
-        <div style={{ width: "25%" }}>
+        <div>
             <form >
-                <material.Dialog fullWidth open={openInvitePoup.open} hideBackdrop >
-                    {openInvitePoup.action === "add-user" ? (
+                <material.Dialog maxWidth="lg" fullWidth open={openInvitePopup.open} hideBackdrop >
+                    {openInvitePopup.action === "add-user" ? (
                         <>
                             <material.DialogTitle>Add User For Organisation</material.DialogTitle>
                             <material.DialogContent sx={{ height: "50vh" }}>
@@ -230,23 +274,28 @@ function InviteUser(props) {
                                         onChange={roleChange}
                                     >
                                         <material.MenuItem value="ADMIN">ADMIN</material.MenuItem>
+                                        <material.MenuItem value="PRESCRIBER" hidden={userDetails.role === "ADMIN"}>PRESCRIBER</material.MenuItem>
                                         <material.MenuItem value="MANAGER" hidden={userDetails.role === "SUPERADMIN"}>MANAGER</material.MenuItem>
                                         <material.MenuItem value="INJECTOR" hidden={userDetails.role === "SUPERADMIN"}>INJECTOR</material.MenuItem>
                                     </material.Select>
                                 </material.FormControl>
                                 {userDetails.role === "SUPERADMIN" ? (
-                                    <material.Autocomplete
-                                        fullWidth
-                                        id="orgId"
-                                        className='mt-2'
-                                        onChange={selectOrg}
-                                        options={organisation}
-                                        renderInput={(params) => <material.TextField {...params} variant="standard" label="Organisation Name"
-                                            {...register("orgId", {
-                                                required: true,
-                                            })}
-                                        />}
-                                    />
+                                    <>
+                                        {role !== "PRESCRIBER" ? (
+                                            <material.Autocomplete
+                                                fullWidth
+                                                id="orgId"
+                                                className='mt-2'
+                                                onChange={selectOrg}
+                                                options={organisation}
+                                                renderInput={(params) => <material.TextField {...params} variant="standard" label="Organisation Name"
+                                                    {...register("orgId", {
+                                                        required: true,
+                                                    })}
+                                                />}
+                                            />
+                                        ) : null}
+                                    </>
                                 ) : userDetails.role === "ADMIN" && role !== "INJECTOR" ? (
                                     <material.Autocomplete
                                         fullWidth
@@ -273,6 +322,100 @@ function InviteUser(props) {
                                         />}
                                     />
                                 ) : null}
+                                {role === "PRESCRIBER" ? (
+                                    <div>
+                                        <material.FormControl sx={{ marginTop: 4 }}>
+                                            <material.FormLabel id="demo-radio-buttons-group-label">Gender</material.FormLabel>
+                                            <material.RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                onChange={handleChange}
+                                                value={selectValue}
+                                            >
+                                                <material.FormControlLabel value="MALE" control={<material.Radio color="secondary" />} label="Male" />
+                                                <material.FormControlLabel value="FEMALE" control={<material.Radio color="secondary" />} label="Female" />
+                                                <material.FormControlLabel value="TRANSGENDER" control={<material.Radio color="secondary" />} label="Other" />
+                                            </material.RadioGroup>
+                                        </material.FormControl>
+                                        <material.TextField
+                                            {...register("AHPRA_Reg_ID", { required: true })}
+                                            autoFocus
+                                            margin="dense"
+                                            id="name"
+                                            label="AHPRA Reg ID"
+                                            type="number"
+                                            fullWidth
+                                            variant="standard"
+                                        />
+                                        <material.TextField
+                                            {...register("address", { required: true })}
+                                            autoFocus
+                                            margin="dense"
+                                            id="name"
+                                            label="Address"
+                                            type="text"
+                                            fullWidth
+                                            variant="standard"
+                                        />
+                                        <material.TextField
+                                            {...register("phone", { required: true })}
+                                            autoFocus
+                                            margin="dense"
+                                            id="name"
+                                            label="Phone"
+                                            type="number"
+                                            fullWidth
+                                            variant="standard"
+                                        />
+                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                            <material.DesktopDatePicker
+                                                label="Start Date"
+                                                readOnly
+                                                value={startDate}
+                                                onChange={(newValue) => {
+                                                    setStartDate(newValue)
+                                                }}
+                                                renderInput={(params) => <material.TextField {...params}
+                                                    variant="standard"
+                                                    fullWidth
+                                                    sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                                    InputProps={{ readOnly: true }}
+                                                />}
+                                            />
+                                        </LocalizationProvider>
+                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                            <material.DesktopDatePicker
+                                                label="End Date"
+                                                value={endDate}
+                                                onChange={(newValue) => {
+                                                    setEndDate(newValue)
+                                                }}
+                                                renderInput={(params) => <material.TextField {...params}
+                                                    variant="standard"
+                                                    fullWidth
+                                                    sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                                />}
+                                            />
+                                        </LocalizationProvider>
+                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                            <material.DateTimePicker
+                                                label="Time Stamp"
+                                                readOnly
+                                                value={date}
+                                                onChange={(newValue) => {
+                                                    setDate(newValue)
+                                                }}
+                                                renderInput={(params) => <material.TextField {...params}
+                                                    variant="standard"
+                                                    fullWidth
+                                                    sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                                    InputProps={{ readOnly: true }}
+                                                />}
+                                            />
+                                        </LocalizationProvider>
+                                    </div>
+                                ) : null}
                                 <material.TextField
                                     {...register("password", { required: true })}
                                     autoFocus
@@ -292,7 +435,7 @@ function InviteUser(props) {
                                 <material.Button onClick={handleSubmit(addUserByOrg)} variant="contained" startIcon={<material.ForwardToInboxIcon />}>Send</material.Button>
                             </material.DialogActions>
                         </>
-                    ) : openInvitePoup.action === "invite-user" ? (
+                    ) : openInvitePopup.action === "invite-user" ? (
                         <>
                             <material.DialogTitle>Invite User</material.DialogTitle>
                             <material.DialogContent>
@@ -319,7 +462,7 @@ function InviteUser(props) {
                                         onChange={roleChange}
                                     >
                                         <material.MenuItem value="ADMIN">ADMIN</material.MenuItem>
-                                        <material.MenuItem value="MANAGER">MANAGER</material.MenuItem>
+                                        <material.MenuItem value="PRESCRIBER">PRESCRIBER</material.MenuItem>
                                     </material.Select>
                                 </material.FormControl>
                             </material.DialogContent>

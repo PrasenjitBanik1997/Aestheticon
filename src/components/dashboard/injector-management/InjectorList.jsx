@@ -6,7 +6,7 @@ import { styled } from '@mui/material/styles';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useNavigate } from 'react-router-dom';
-import { getAllInjector } from '../../../services/InjectorService';
+import { getAllInjectors } from '../../../services/InjectorService';
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -36,7 +36,7 @@ function InjectorList(props) {
     }, []);
 
     const getInjectorList = async () => {
-        await getAllInjector()
+        await getAllInjectors()
             .then((resp) => {
                 setInjectorsData(resp.data)
                 setisLoading(false)

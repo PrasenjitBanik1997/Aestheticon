@@ -5,9 +5,9 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { getAllPAtients, getAllPatientByClinicId } from '../../../services/PatientService';
-import { connect } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { getPendingTreatmentRequest } from '../../../services/PrescriberService';
+import { dateAndTimeFormat } from '../../../date-and-time-format/DateAndTimeFormat';
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -21,55 +21,49 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     },
 }));
 
-const label = { inputProps: { 'aria-label': 'Color switch demo' } };
+var allPatientRequestData;
 
-let allPatientData;
+function WatingRoom(props) {
 
-function PatientManagement(props) {
-
-    const { userData, clinicData } = props;
-    let userDetails = userData.authReducer.data;
-    let clinicDetails = clinicData.clinicReducer.data;
-
-    const [patientsData, setPatientsData] = useState([]);
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [isLoading, setisLoading] = useState(true);
-
-    const location = useLocation();
+    const [patientRequestData, setPatientRequestData] = useState([]);
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(20);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (userDetails.role === "INJECTOR") {
-            getAllPatientListByClinicId()
-        } else {
-            getPatientList();
-        };
+        pendingTreatmantRequest()
     }, []);
 
-    const getPatientList = async () => {
-        await getAllPAtients()
-            .then((res) => {
-                allPatientData = res.data
-                setPatientsData(res.data)
-                setisLoading(false)
-            })
-    };
-
-    const getAllPatientListByClinicId = async () => {
-        await getAllPatientByClinicId(clinicDetails.clinicId)
-            .then((res) => {
-                allPatientData = res.data
-                setPatientsData(res.data)
+    const pendingTreatmantRequest = async () => {
+        await getPendingTreatmentRequest()
+            .then((resp) => {
+                allPatientRequestData = resp.data;
+                setPatientRequestData(resp.data)
                 setisLoading(false)
             })
             .catch((error) => {
 
             })
+    }
+
+    function goBack() {
+        navigate("/dashboard")
     };
 
-    const addPatient = () => {
-        navigate("/dashboard/patient-list/add-patient")
+    function filterByPatientName(value) {
+        const filteredRows = allPatientRequestData.filter((row) => {
+            return row.patientName
+                .toString()
+                .toLowerCase()
+                .trim()
+                .includes(value.toString().toLowerCase().trim())
+        })
+        if (value.trim().toString().length < 1) {
+            setPatientRequestData(allPatientRequestData);
+        } else {
+            setPatientRequestData(filteredRows);
+        }
     };
 
     const handleChangePage = (event, newPage) => {
@@ -81,39 +75,19 @@ function PatientManagement(props) {
         setPage(0);
     };
 
-    const filterByPatientName = (value) => {
-        const filteredRows = patientsData.filter((row) => {
-            return row.name
-                .toString()
-                .toLowerCase()
-                .trim()
-                .includes(value.toString().toLowerCase().trim())
-        })
-        if (value.trim().toString().length < 1) {
-            setPatientsData(allPatientData);
-        } else {
-            setPatientsData(filteredRows);
-        }
-    };
-
-    const showPatientData = (patientData) => {
-        navigate("/dashboard/patient-list/edit-patient", { state: { patientData } })
-    };
-
-    const goBack = () => {
-        navigate("/dashboard")
-    };
+    function showTreatmentPlan(treatmentPlanDetails) {
+        navigate("/dashboard/waiting-room/treatment-plan-details", { state: { treatmentPlanDetails } })
+    }
 
     return (
         <div className='body'>
             <Swipedrawer />
-            <div className='row'>
-                <div className='col-6'>
-                    <span><material.Typography variant="h5">Patient List</material.Typography></span>
+            <div className="row">
+                <div className="col-6">
+                    <span><material.Typography variant="h5">Waiting Room</material.Typography></span>
                 </div>
-                <div className='col-6'>
+                <div className="col-6">
                     <span className="float-end">
-                        <material.Button variant="contained" onClick={() => addPatient({ "readOnly": false, "callFrom": "add" })} startIcon={<material.AddIcon />}> Add-Patient</material.Button>
                         <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
                     </span>
                 </div>
@@ -134,8 +108,9 @@ function PatientManagement(props) {
                                 <material.TableHead >
                                     <material.TableRow>
                                         <StyledTableCell >Patient Name</StyledTableCell>
-                                        <StyledTableCell align="right">Patient ID</StyledTableCell>
-                                        <StyledTableCell align="right">Status</StyledTableCell>
+                                        <StyledTableCell >Clinic Name</StyledTableCell>
+                                        <StyledTableCell >Request Generate Time</StyledTableCell>
+                                        <StyledTableCell >Status</StyledTableCell>
                                     </material.TableRow>
                                 </material.TableHead>
                                 <material.TableBody>
@@ -149,18 +124,25 @@ function PatientManagement(props) {
                                         </material.TableRow>
                                     ) : (
                                         <>
-                                            {patientsData.length ? patientsData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => (
+                                            {patientRequestData.length ? patientRequestData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => (
                                                 <material.TableRow
                                                     key={i}
                                                     sx={{
                                                         '&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer",
                                                         ":hover": { backgroundColor: "lightgray" }
                                                     }}
-                                                    onClick={() => showPatientData({ ...row, "action": "edit" })}
+                                                    onClick={() => showTreatmentPlan({...row, "parentComponent":"waitingRoom"})}
                                                 >
-                                                    <material.TableCell sx={{ textTransform: "capitalize" }} size='small' component="th" scope="row">{row.name} </material.TableCell>
-                                                    <material.TableCell size='small' align="right">{row.patientId}</material.TableCell>
-                                                    <material.TableCell size='small' align="right">{row.active ? (<p style={{ color: "green", fontWeight: "bold" }}>active</p>) : (<p style={{ color: "red", fontWeight: "bold" }}>De-active</p>)}</material.TableCell>
+                                                    <material.TableCell sx={{ pt: 2, pb: 2 }} size='small' component="th" scope="row">{row.patientName}</material.TableCell>
+                                                    <material.TableCell size='small'>{row.clinicName}</material.TableCell>
+                                                    <material.TableCell size='small'>{dateAndTimeFormat(row.timeStamp)}</material.TableCell>
+                                                    <material.TableCell size='small'>
+                                                        {row.status === "PENDING" ? (
+                                                            <span className="badge" style={{ backgroundColor: "yellowgreen" }}>
+                                                                PENDING
+                                                            </span>
+                                                        ) : null}
+                                                    </material.TableCell>
                                                 </material.TableRow>
                                             )) : (
                                                 <material.TableRow >
@@ -177,7 +159,7 @@ function PatientManagement(props) {
                         <material.TablePagination
                             rowsPerPageOptions={[5, 10, 20]}
                             component="div"
-                            count={patientsData.length}
+                            count={patientRequestData.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             onPageChange={handleChangePage}
@@ -188,13 +170,6 @@ function PatientManagement(props) {
             </div>
         </div>
     );
-};
+}
 
-const mapStateToProps = (state) => {
-    return {
-        userData: state,
-        clinicData: state
-    };
-};
-
-export default connect(mapStateToProps)(PatientManagement);
+export default WatingRoom;

@@ -30,7 +30,7 @@ function Clinic(props) {
 
   const { userData, getClinicDetails } = props;
   let userDetails = userData.authReducer.data;
-  const [open, setOpen] = React.useState({ open: false, Id: null })
+  const [openConfirmationDialog, setOpenConfirmationDialog] = React.useState({ open: false, Id: null });
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [clinicData, setClinicData] = useState([]);
@@ -76,13 +76,13 @@ function Clinic(props) {
   };
 
   const deleteClinic = async (clinicId) => {
-    setOpen({ open: true, Id: clinicId })
+    setOpenConfirmationDialog({ open: true, Id: clinicId })
   };
 
   const deleteClinicAfterConformation = async (clinicId) => {
     await deleteClinicById(clinicId)
       .then(() => {
-        setOpen({ open: false, Id: null })
+        setOpenConfirmationDialog({ open: false, Id: null })
         setOpenSnackBar({
           "action": true,
           "type": "success",
@@ -99,7 +99,7 @@ function Clinic(props) {
         })
         setisLoading(false)
       })
-  }
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -116,7 +116,7 @@ function Clinic(props) {
       .then((resp) => {
         getClinic()
       })
-  }
+  };
 
   const goToAddClinicPage = (organisationData) => {
     navigate("/clinic/add_clinic", { state: { organisationData } })
@@ -144,7 +144,7 @@ function Clinic(props) {
   const selectClinic = (clinicData) => {
     getClinicDetails(clinicData)
     navigate("/dashboard")
-  }
+  };
 
 
   return (
@@ -203,7 +203,7 @@ function Clinic(props) {
                             : { '&:last-child td, &:last-child th': { border: 0 } }}
                           onClick={userDetails.role === "INJECTOR" ? () => selectClinic(row) : null}
                         >
-                          <material.TableCell size='small' component="th" scope="row">{row.clinicId}  </material.TableCell>
+                          <material.TableCell sx={{ pt: 2, pb: 2 }} size='small' component="th" scope="row">{row.clinicId}</material.TableCell>
                           <material.TableCell size='small'>{row.clinicName}</material.TableCell>
                           <material.TableCell size='small' align="right" hidden={userDetails.role === "INJECTOR"}>{row.director1}</material.TableCell>
                           <material.TableCell size='small' align="right" hidden={userDetails.role === "INJECTOR"}>{row.director1Phone}</material.TableCell>
@@ -251,8 +251,8 @@ function Clinic(props) {
         setOpenSnackBar={setOpenSnackBar}
       />
       <ConfirmationDialog
-        open={open}
-        setOpen={setOpen}
+        openConfirmationDialog={openConfirmationDialog}
+        setOpenConfirmationDialog={setOpenConfirmationDialog}
         deleteClinicAfterConformation={deleteClinicAfterConformation}
       />
     </div>
@@ -260,25 +260,25 @@ function Clinic(props) {
 };
 
 function ConfirmationDialog(props) {
-  const { open, setOpen, deleteClinicAfterConformation } = props
+  const { openConfirmationDialog, setOpenConfirmationDialog, deleteClinicAfterConformation } = props
 
   const dialogClose = () => {
-    setOpen({ open: false, Id: null })
+    setOpenConfirmationDialog({ openConfirmationDialog: false, Id: null })
   }
 
-  const orgDelete = () => {
-    deleteClinicAfterConformation(open.Id)
+  const deleteClinic = () => {
+    deleteClinicAfterConformation(openConfirmationDialog.Id)
   }
 
 
   return (
     <div >
-      <material.Dialog maxWidth="40%" open={open.open} hideBackdrop >
+      <material.Dialog maxWidth="40%" open={openConfirmationDialog.open} hideBackdrop >
         <material.DialogTitle>Delete Clinic</material.DialogTitle>
         <material.DialogContent>Are you sure,you want to delete this Clinic?</material.DialogContent>
         <material.DialogActions className='me-3'>
           <material.Button onClick={dialogClose} variant="outlined" startIcon={<material.CloseIcon />}>Cancel</material.Button>
-          <material.Button onClick={orgDelete} variant="contained" color="error" startIcon={<material.DeleteIcon />}>Delete</material.Button>
+          <material.Button onClick={deleteClinic} variant="contained" color="error" startIcon={<material.DeleteIcon />}>Delete</material.Button>
         </material.DialogActions>
       </material.Dialog>
     </div>

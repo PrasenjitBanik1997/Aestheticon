@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-no-undef */
 import React, { useState } from 'react'
 import { material } from '../../library/material'
 import "./Login.css"
@@ -48,7 +47,7 @@ function Login(props) {
             navigate("/organisation")
           } else if (res.data.role === "ADMIN" || res.data.role === "INJECTOR") {
             navigate("/clinic")
-          } else if (res.data.role === "MANAGER") {
+          } else if (res.data.role === "MANAGER" || res.data.role === "PRESCRIBER") {
             navigate("/dashboard")
           }
           reset()

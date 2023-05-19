@@ -2,7 +2,7 @@ import axios from "axios";
 import { rootApiUrl } from "../environment/Environment";
 
 
-export const getAllPAtient = async () => {
+export const getAllPAtients = async () => {
     return await axios.get(`${rootApiUrl}/get-all-patients`);
 };
 
@@ -20,4 +20,8 @@ export const addPatientHistory = async (patientHistory) => {
 
 export const getAllPatientByClinicId = async (clinicId) => {
     return await axios.get(`${rootApiUrl}/get-patient-details-by-clinicId/${clinicId}`);
+};
+
+export const getPatientNote = async (patientId) => {
+    return await axios.get(`${rootApiUrl}/get-patient-note/${patientId}`);
 };

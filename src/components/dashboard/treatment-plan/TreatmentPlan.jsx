@@ -2,42 +2,34 @@ import React, { useEffect, useState, useRef } from 'react';
 import Swipedrawer from '../../drawer/Swipedrawer';
 import { material } from '../../../library/material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { connect } from 'react-redux';
-import { treatmentAreaData } from './Treatment';
 import { createBlankTreatmentPlan, getClinicDetailsByClinicId, getInjectorDetails, getTreatmentPlanByPlanId, saveTreatmentPlan } from '../../../services/TreatmentPlanService';
-import { useForm } from 'react-hook-form'
 import moment from 'moment';
 import Snackbar from '../../toastrmessage/Snackbar';
 import ConsentForm from '../consent-form/ConsentForm';
+import { dateAndTimeFormat } from '../../../date-and-time-format/DateAndTimeFormat';
+import AddTreatmentPlan from './AddTreatmentPlan';
 
 
 
-let treatmentName = [
-    "Anti-Wrinkle",
-    "Dermal Filler",
-    "Skin Booster"
-];
-
-let treatmentData = [];
-let uploadImage = [];
-let array = [];
-
+var treatmentData = [];
+var uploadImage = [];
+var allImages = [];
+var uniqueTreatmentName = [];
 
 function TreatmentPlan(props) {
 
     const { userData, clinicData } = props;
     const [date, setDate] = React.useState(moment().format("YYYY-MM-DDTHH:mm:ss"));
     const [openConsentForm, setOpenConsentForm] = useState(true);
-    const [open, setOpen] = useState(false);
+    const [openTreatmentPlan, setOpenTreatmentPlan] = useState(false);
     const [clinic, setClinic] = useState('');
-    const [injectorData, setInjectorData] = useState('');
     const [hideShow, setHideShow] = useState(true);
     const [close, setClose] = useState(true);
     const [stream, setStream] = useState(null);
     const [image, setImage] = useState([]);
     const [blankTreatmentData, setBlankTreatmentData] = useState([]);
+    const [treatmentPlanData, setTreatmentPlanData] = useState();
     const [openFullImage, setOpenFullImage] = useState({ "open": false, "image": "" });
     const [openSnackBar, setOpenSnackBar] = useState({
         "action": false,
@@ -54,9 +46,7 @@ function TreatmentPlan(props) {
     useEffect(() => {
         getClinicByClinicId()
         createBlankTreatment()
-        // if (blankTreatmentData !== "") {
-        //     getTreatmentPlanData()
-        // }
+        treatmentData = [];
     }, []);
 
     const getClinicByClinicId = async () => {
@@ -80,7 +70,7 @@ function TreatmentPlan(props) {
     const getTreatmentPlanData = async (value) => {
         await getTreatmentPlanByPlanId(value)
             .then((resp) => {
-                console.log(resp.data)
+                // setTreatmentPlanData(resp.data)
             })
     };
 
@@ -89,7 +79,7 @@ function TreatmentPlan(props) {
     };
 
     const openTreatment = () => {
-        setOpen(true)
+        setOpenTreatmentPlan(true)
     };
 
     const getTreatmentData = (data) => {
@@ -97,6 +87,10 @@ function TreatmentPlan(props) {
             setHideShow(false)
         }
         treatmentData.push(data)
+        let array = treatmentData.map((ele) => ele.treatment)
+        uniqueTreatmentName = array.filter((value, index, self) => {
+            return self.indexOf(value) === index;
+        });
     };
 
     const addPhoto = () => {
@@ -133,7 +127,7 @@ function TreatmentPlan(props) {
 
     async function uploadPhoto(photo) {
         setImage(photo)
-        array.push({ "image": photo });
+        allImages.push({ "image": photo });
         var reader = new FileReader();
         reader.readAsDataURL(photo);
         reader.onloadend = function () {
@@ -172,60 +166,65 @@ function TreatmentPlan(props) {
                     </span>
                 </div>
             </div>
-            <material.Paper sx={{ pb: 3, mt: 2 }}>
+            <material.Paper sx={{ pb: 3, mt: 2 }} className='container'>
                 <div className='row ms-2'>
                     <div className='col-6 mt-2'>
-                        <div>
-                            <span className='fw-bold'>Patient Id : </span>
-                            <span>{patientData.patientId}</span>
-                        </div>
-                        <div>
-                            <span className='fw-bold'>Patient Name : </span>
-                            <span>{patientData.name}</span>
-                        </div>
-                        <div>
-                            <span className='fw-bold'>Patient Date of Birth : </span>
-                            <span>{patientData.dateOfBirth}</span>
-                        </div>
-                        <div>
-                            <span className='fw-bold'>Injector Id : </span>
-                            <span>{userDetails.userId}</span>
-                        </div>
-                        <div>
-                            <span className='fw-bold'>Injector Name : </span>
-                            <span>{userDetails.name}</span>
-                        </div>
-                        <div>
-                            <span className='fw-bold'>Clinic Name : </span>
-                            <span>{clinic.clinicName}</span>
-                        </div>
-                        <div className='d-flex flex-lg-row flex-md-column'>
-                            <span className='fw-bold'>Clinic Address : </span>
-                            <span>{clinic.registeredOfficeAddress}</span>
-                        </div>
-                        <div>
-                            <span className='fw-bold'>Time Stamp : </span>
-                            <span>
-                                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                    <material.DateTimePicker
-                                        label="Date Of Entry"
-                                        value={date}
-                                        onChange={(newValue) => {
-                                            setDate(newValue)
-                                        }}
-                                        renderInput={(params) => <material.TextField {...params}
-                                            variant="standard"
-                                        />}
-                                    />
-                                </LocalizationProvider>
-                            </span>
-                        </div>
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className='fw-bold'>
+                                    <td>Patient Id</td>
+                                    <td>{treatmentPlanData ? treatmentPlanData.patientId : patientData.patientId}</td>
+                                </tr>
+                                <tr className='fw-bold'>
+                                    <td>Patient Name</td>
+                                    <td>{treatmentPlanData ? treatmentPlanData.patientName : patientData.name}</td>
+                                </tr>
+                                <tr className='fw-bold'>
+                                    <td>Patient Date of Birth</td>
+                                    <td>{treatmentPlanData ? treatmentPlanData.patientDateOfBirth : patientData.dateOfBirth}</td>
+                                </tr>
+                                <tr className='fw-bold'>
+                                    <td>Injector Id</td>
+                                    <td>{treatmentPlanData ? treatmentPlanData.injectorId : userDetails.userId}</td>
+                                </tr>
+                                <tr className='fw-bold'>
+                                    <td>Injector Name</td>
+                                    <td>{treatmentPlanData ? treatmentPlanData.injectorName : userDetails.name}</td>
+                                </tr>
+                                <tr className='fw-bold'>
+                                    <td>Clinic Name</td>
+                                    <td>{treatmentPlanData ? treatmentPlanData.clinicName : clinic.clinicName}</td>
+                                </tr>
+                                <tr className='fw-bold'>
+                                    <td>Clinic Address</td>
+                                    <td>{treatmentPlanData ? treatmentPlanData.clinicAddress : clinic.registeredOfficeAddress}</td>
+                                </tr>
+                                <tr className='fw-bold'>
+                                    <td>Time Stamp</td>
+                                    <td>{treatmentPlanData ? dateAndTimeFormat(treatmentPlanData.createdAt) : dateAndTimeFormat(date)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+                    {/* {treatmentPlanData ? treatmentPlanData.targetAreaBefore.map((ele, k) => (
+                        <div className='col-6 py-2' key={k}>
+                            <img
+                                src={ele}
+                                height={100} width="25%"
+                            />
+                        </div>
+                    )) : ( */}
                     <div className='col-6 py-2' hidden={close}>
                         {image ? (
                             <>
                                 <span className='me-5'>
-                                    {array.length ? array.map((ele, i) => (
+                                    {allImages.length ? allImages.map((ele, i) => (
                                         <img
                                             key={i}
                                             src={URL.createObjectURL(ele.image)}
@@ -234,9 +233,6 @@ function TreatmentPlan(props) {
                                             style={{ cursor: "pointer" }}
                                         />
                                     )) : ""}
-                                    {/* <span className='d-flex justify-content-center mt-2'>
-                                        <material.Button variant="contained" onClick={reTakePhoto}>re-take photo</material.Button>
-                                    </span> */}
                                 </span>
                             </>
                         ) : (
@@ -251,23 +247,23 @@ function TreatmentPlan(props) {
                             </span>
                         )}
                     </div>
+                    {/* )} */}
                 </div>
                 <hr />
                 <div className='row ms-2'>
-                    <div>
+                    <div hidden={treatmentPlanData}>
                         <span className="float-end">
                             {/* {close === true ? ( */}
                             <material.Button className='me-2' variant="contained" startIcon={<material.AddAPhotoIcon />} onClick={addPhoto} >Add Photo</material.Button>
                             {/* // ) : ""} */}
-                            {openConsentForm === true ? (
-                                <material.Button variant="contained" startIcon={<material.AddIcon />} onClick={openTreatment} >Add Treatment</material.Button>
-                            ) : ""}
+                            {/* {openConsentForm === true ? ( */}
+                            <material.Button variant="contained" className='me-2' startIcon={<material.AddIcon />} onClick={openTreatment} >Add Treatment</material.Button>
+                            {/* // ) : ""} */}
                         </span>
                     </div>
                     <div hidden={hideShow}>
                         {treatmentData.length ? treatmentData.map((ele, i) => (
                             <div className='row me-2 mt-3' key={i}>
-                                <hr />
                                 <div className='col-lg-3 col-md-6'>
                                     <material.TextField
                                         label="Treatment"
@@ -337,16 +333,15 @@ function TreatmentPlan(props) {
                 </div>
                 <ConsentForm
                     openConsentForm={openConsentForm}
-                    setOpenConsentForm={setOpenConsentForm}
                     treatmentData={treatmentData}
+                    uniqueTreatmentName={uniqueTreatmentName}
                     blankTreatmentData={blankTreatmentData}
                     uploadImage={uploadImage}
-                    getTreatmentPlanData={getTreatmentPlanData}
                 />
             </material.Paper>
-            <AddTreatment
-                open={open}
-                setOpen={setOpen}
+            <AddTreatmentPlan
+                openTreatmentPlan={openTreatmentPlan}
+                setOpenTreatmentPlan={setOpenTreatmentPlan}
                 getTreatmentData={getTreatmentData}
             />
             <Snackbar
@@ -361,104 +356,7 @@ function TreatmentPlan(props) {
     );
 };
 
-const AddTreatment = (props) => {
 
-    const { open, setOpen, getTreatmentData } = props;
-    const [areaOption, setAreaOption] = useState([]);
-    const [selectAreaData, setSelectAreaData] = useState("");
-    const [selectTreatmentData, setSelectTreatmentData] = useState("");
-
-    const { register, handleSubmit, resetField, formState: { errors, isValid } } = useForm({
-        mode: "onTouched",
-    });
-
-    const selectTreatment = (e, value) => {
-        setSelectTreatmentData(value)
-        let data = treatmentAreaData.areaData.filter((ele) => ele.name === value).map((resp) => resp.option);
-        setAreaOption(data);
-    };
-
-    const selectArea = (e, value) => {
-        setSelectAreaData(value)
-    };
-
-    const addTreatment = (data) => {
-        getTreatmentData(data)
-        setOpen(false)
-        resetField("product")
-        resetField("qty")
-    }
-
-    return (
-        <div>
-            <material.Dialog maxWidth="500px" open={open} hideBackdrop>
-                <material.DialogTitle>Add Treatment</material.DialogTitle>
-                <material.DialogContent>
-                    <div className='row'>
-                        <div className='col-12'>
-                            <material.Autocomplete
-                                id="treatment"
-                                className='mt-3'
-                                onChange={selectTreatment}
-                                options={treatmentName}
-                                renderInput={(params) => <material.TextField {...params} variant="standard" label="Select Treatment"
-                                    {...register("treatment", { required: true })}
-                                />}
-                            />
-                        </div>
-                        <div className='col-12'>
-                            <material.Autocomplete
-                                id="area"
-                                className='mt-3'
-                                onChange={selectArea}
-                                options={areaOption}
-                                renderInput={(params) => <material.TextField {...params} variant="standard" label="Select Area"
-                                    {...register("area", { required: true })}
-                                />}
-                            />
-                        </div>
-                        <div className='col-12'>
-                            <material.TextField
-                                label="Product"
-                                id="product"
-                                variant="standard"
-                                type="text"
-                                size="small"
-                                fullWidth
-                                inputProps={{ style: { textTransform: 'capitalize' } }}
-                                sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
-                                {...register("product", { required: true })}
-                            />
-                        </div>
-                        <div className='col-12'>
-                            <material.TextField
-                                label="Qty"
-                                id="qty"
-                                variant="standard"
-                                type="text"
-                                size="small"
-                                fullWidth
-                                inputProps={{ style: { textTransform: 'capitalize' } }}
-                                sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
-                                {...register("qty", { required: true })}
-                            />
-                        </div>
-                        <div>
-                            <span className='float-end mt-3'>
-                                <material.Button variant="contained" size="medium" className='me-2' color='error' onClick={() => setOpen(false)}>
-                                    Cancel
-                                </material.Button>
-                                <material.Button variant="contained" size="medium" onClick={handleSubmit(addTreatment)}>
-                                    Add
-                                </material.Button>
-                            </span>
-                        </div>
-                    </div>
-                </material.DialogContent>
-            </material.Dialog>
-        </div>
-    )
-};
 
 const ShowFullImage = (props) => {
 

@@ -12,11 +12,12 @@ import PatientManagement from '../components/dashboard/patient-management/Patien
 import AddPatient from '../components/dashboard/add-patient/AddPatient';
 import PatientHistory from '../components/dashboard/patient-history/PatientHistory';
 import InjectorList from '../components/dashboard/injector-management/InjectorList';
-import EditInjector from '../components/dashboard/injector-management/EditInjector';
 import TreatmentPlan from '../components/dashboard/treatment-plan/TreatmentPlan';
 import ApprovalWating from '../components/dashboard/approval-wating/ApprovalWating';
 import ApprovalRequests from '../components/dashboard/approval-requests/ApprovalRequests';
 import EditUserMangement from '../components/usermanagement/EditUserManagement';
+import TreatmentPlanDetails from '../components/dashboard/treatment-plan-details/TreatmentPlanDetails';
+import WatingRoom from '../components/dashboard/wating-room/WatingRoom';
 
 export default function Routing() {
     return (
@@ -38,9 +39,10 @@ export default function Routing() {
                 <Route path='/dashboard/patient-list/edit-patient' element={<ProtectRoute Component={AddPatient} />} />
                 <Route path='/dashboard/patient-list/edit-patient/patient-history' element={<ProtectRoute Component={PatientHistory} />} />
                 <Route path='/dashboard/injector-list' element={<ProtectRoute Component={InjectorList} />} />
-                <Route path='/dashboard/injector-list/edit-injector' element={<ProtectRoute Component={EditInjector} />} />
                 <Route path='/dashboard/approval-waiting-quere' element={<ProtectRoute Component={ApprovalWating} />} />
                 <Route path='/dashboard/approval-requests' element={<ProtectRoute Component={ApprovalRequests} />} />
+                <Route path='/dashboard/waiting-room' element={<ProtectRoute Component={WatingRoom} />} />
+                <Route path='/dashboard/waiting-room/treatment-plan-details' element={<ProtectRoute Component={TreatmentPlanDetails} />} />
             </Routes>
         </div>
     )

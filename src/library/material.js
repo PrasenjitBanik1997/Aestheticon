@@ -81,6 +81,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
+import VideoCallIcon from '@mui/icons-material/VideoCall';
 
 
 
@@ -167,5 +168,6 @@ export const material = {
     AddIcon,
     ScheduleIcon,
     CameraAltIcon,
-    AddAPhotoIcon
+    AddAPhotoIcon,
+    VideoCallIcon
 }

@@ -6,26 +6,35 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { connect } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { addNewPatient } from '../../../services/PatientService';
+import { addNewPatient, getPatientNote } from '../../../services/PatientService';
 import Snackbar from '../../toastrmessage/Snackbar';
 import { dateAndTimeFormat, dateFormat } from '../../../date-and-time-format/DateAndTimeFormat';
-import AddPatientHistory from '../../dialog/AddPatientHistory';
+import moment from 'moment';
+import ShowPatientNote from '../showPatientNote/ShowPatientNote';
+import AddCustomNote from '../../dialog/AddCustomNote';
+import AddPatientNote from '../../dialog/AddPatientNote';
 
 
-let patientHistory = [];
-let history = [];
+var patientNoteData = [];
+var patientNote;
+var patientCustomNote = [];
+var allPatientNoteData;
 
 function AddPatient(props) {
 
     const [dateOfBirth, setDateOfBirth] = React.useState();
     const [date, setDate] = React.useState();
-    const [selectValue, setSelectValue] = useState('');
+    const [selectGender, setSelectGender] = useState('');
     const [openSnackBar, setOpenSnackBar] = useState({
         "action": false,
         "type": "",
         "message": "",
     });
-    const [openHistory, setOpenHistory] = useState(false);
+    const [openPatientNote, setOpenPatientNote] = useState(false);
+    const [hideShow, setHideShow] = useState(false);
+    const [patientsHistoryDate, setPatientsHistoryDate] = useState([]);
+    const [dateValue, setDateValue] = useState([]);
+    const [openCustomNote, setOpenCustomNote] = useState(false);
 
     const { userData, clinicData } = props;
     let userDetails = userData.authReducer.data;
@@ -43,19 +52,54 @@ function AddPatient(props) {
     useEffect(() => {
         setDateOfBirth(patientData ? patientData.dateOfBirth : dateOfBirth);
         setDate(patientData ? patientData.createdAt : date);
-        setSelectValue(patientData ? patientData.gender : selectValue);
-        console.log(userDetails)
-    });
+        setSelectGender(patientData ? patientData.gender : selectGender);
+        getAllPatientNote()
+    }, []);
+
+    const getAllPatientNote = async () => {
+        await getPatientNote(patientData.patientId)
+            .then((resp) => {
+                allPatientNoteData = resp.data;
+                let dateOfEntry = resp.data.map((ele) => ele.dateOfEntry);
+                setPatientsHistoryDate(dateOfEntry);
+            })
+    }
 
     const goBack = () => {
         navigate("/dashboard/patient-list")
     };
 
+    const changeGender = (event) => {
+        setSelectGender(event.target.value)
+    };
+
+    const openAddHistory = (data) => {
+        setOpenPatientNote(true)
+    };
+
+    const addCustomNote = (data) => {
+        setOpenCustomNote(true)
+    };
+
     const getPatientHistoryData = (data) => {
-        patientHistory.push(data)
-        let obj = {}
-        obj[data.key] = data.value
-        history.push(obj)
+        if (data !== "") {
+            setHideShow(true)
+        }
+        let array = [];
+        patientNote = data
+        array.push(data)
+        const outputArray = array.map(obj => {
+            const keys = Object.keys(obj);
+            let data = keys.map(key => ({ [key]: obj[key] }));
+            return data
+        });
+        patientNoteData = outputArray.flat();
+    };
+
+    const getCustomNote = (data) => {
+        patientCustomNote.push(data)
+        // let obj = { [data.key]: data.value }
+        patientNoteData = [...patientNoteData, { [data.key]: data.value }]
     };
 
     const addPatient = async (fromData) => {
@@ -66,7 +110,7 @@ function AddPatient(props) {
             "firstName": fromData.firstName,
             "lastName": fromData.lastName,
             "dateOfBirth": dateFormat(dateOfBirth),
-            "gender": selectValue,
+            "gender": selectGender,
             "medicareNumber": fromData.medicareNumber,
             "medicareNumberReference": fromData.medicareNumberReference,
             "medicareExpiry": fromData.medicareExpiry,
@@ -74,7 +118,7 @@ function AddPatient(props) {
             "email": fromData.email,
             "phoneNumber": fromData.phoneNumber,
             "dateOfEntry": dateAndTimeFormat(date),
-            "history": history
+            "history": patientNoteData
         }
         await addNewPatient(obj)
             .then((resp) => {
@@ -96,20 +140,19 @@ function AddPatient(props) {
             })
     };
 
-    const handleChange = (event) => {
-        setSelectValue(event.target.value)
-    };
-
-    const showPatientHistory = () => {
-        navigate("/dashboard/patient-list/edit-patient/patient-history", { state: { patientData } });
-    };
-
-    const openAddHistory = () => {
-        setOpenHistory(true)
-    };
+    // const showPatientNote = () => {
+    //     navigate("/dashboard/patient-list/edit-patient/patient-history", { state: { patientData } });
+    // };
 
     const openTreatmentPlan = () => {
         navigate("/dashboard/patient-list/edit-patient/treatment-plan", { state: { patientData } })
+    };
+
+    const selectDate = (e, value) => {
+        let date = moment(value).toISOString()
+        let data = allPatientNoteData.filter((ele) => ele.dateOfEntry === value)
+        setDateValue(data)
+        // console.log(data)
     }
 
 
@@ -237,8 +280,8 @@ function AddPatient(props) {
                                 row
                                 aria-labelledby="demo-row-radio-buttons-group-label"
                                 name="row-radio-buttons-group"
-                                onChange={handleChange}
-                                value={selectValue}
+                                onChange={changeGender}
+                                value={selectGender}
                             >
                                 <material.FormControlLabel value="MALE" control={<material.Radio color="secondary" />} label="Male" />
                                 <material.FormControlLabel value="FEMALE" control={<material.Radio color="secondary" />} label="Female" />
@@ -354,17 +397,73 @@ function AddPatient(props) {
                     </div> */}
                 </div>
                 <div className='row mt-5' hidden={patientData ? patientData.action === "edit" : ""}>
-                    <span className='col-lg-6 col-md-6 col-sm-6'><material.Typography variant="h5">History</material.Typography></span>
+                    <span className='col-lg-6 col-md-6 col-sm-6'><material.Typography variant="h5">Note</material.Typography></span>
                     <div className='col-lg-6 col-md-6 col-sm-6'>
                         <span className='float-end'>
-                            <material.Button variant="contained" size="medium" onClick={openAddHistory} startIcon={<material.AddIcon />}>
-                                Add-History
-                            </material.Button>
+                            {hideShow ? (
+                                <material.Button variant="contained" className='me-2' onClick={() => addCustomNote({ "action": "addCustomNote" })} startIcon={<material.AddIcon />}>Add-Custom-Note</material.Button>
+                            ) : (
+                                <material.Button variant="contained" size="medium" onClick={() => openAddHistory({ "action": "addNote" })} startIcon={<material.AddIcon />}>
+                                    Add-Note
+                                </material.Button>
+                            )}
                         </span>
                     </div>
-                    {patientHistory.length ? patientHistory.map((element, i) => (
+                    {patientNote ? (
+                        <div className='row'>
+                            <div className="col-lg-2 col-md-4 col-sm-6 mb-2">
+                                <material.Typography>Allergies</material.Typography>
+                            </div>
+                            <div className="col-lg-10 col-md-8 col-sm-6 mb-2 mt-2">
+                                <material.TextField
+                                    label="Allergies"
+                                    id="standard-error"
+                                    variant="standard"
+                                    type="text"
+                                    size="small"
+                                    multiline
+                                    fullWidth
+                                    value={patientNote ? patientNote.allergies : ""}
+                                // {...register("allergies")}
+                                />
+                            </div>
+                            <div className="col-lg-2 col-md-4 col-sm-6 mb-2">
+                                <material.Typography>Medication</material.Typography>
+                            </div>
+                            <div className="col-lg-10 col-md-8 col-sm-6 mt-2">
+                                <material.TextField
+                                    multiline
+                                    label="Medication"
+                                    id="standard-error"
+                                    variant="standard"
+                                    type="text"
+                                    size="small"
+                                    fullWidth
+                                    value={patientNote ? patientNote.medication : ""}
+                                // {...register("medication")}
+                                />
+                            </div>
+                            <div className="col-lg-2 col-md-4 col-sm-6 mb-2">
+                                <material.Typography>Diagnosis</material.Typography>
+                            </div>
+                            <div className="col-lg-10 col-md-8 col-sm-6 mt-2">
+                                <material.TextField
+                                    multiline
+                                    label="Diagnosis"
+                                    id="standard-error"
+                                    variant="standard"
+                                    type="text"
+                                    size="small"
+                                    fullWidth
+                                    value={patientNote ? patientNote.diagnosis : ""}
+                                // {...register("diagnosis")}
+                                />
+                            </div>
+                        </div>
+                    ) : null}
+                    {patientCustomNote.length ? patientCustomNote.map((element, i) => (
                         <div className='row' key={i}>
-                            <div className='col-lg-2 col-md-4 col-sm-6 mt-3'>
+                            <div className='col-lg-2 col-md-4 col-sm-6 mt-2'>
                                 <material.Typography>{element ? element.key : ""}</material.Typography>
                             </div>
                             <div className='col-lg-10 col-md-8 col-sm-6'>
@@ -394,24 +493,44 @@ function AddPatient(props) {
                     </div>
                 </div >
                 {patientData.action === "edit" ? (
-                    <div className='mt-5 pb-5'>
-                        <span className='float-end'>
-                            <material.Button variant="contained" size="medium" onClick={showPatientHistory}>
-                                Show Patient History
-                            </material.Button>
+                    <div className='col-lg-12 col-md-12 col-sm-12 mt-5 pb-5'>
+                        <span className='d-flex flex-row just justify-content-end'>
+                            <material.Typography sx={{ fontSize: 20, marginRight: 3 }}>Show Patient Note By Date</material.Typography>
+                            <material.Autocomplete
+                                id="orgId"
+                                onChange={selectDate}
+                                options={patientsHistoryDate}
+                                renderInput={(params) => <material.TextField {...params} variant="standard" label="Select Date"
+                                    sx={{ width: 300 }}
+                                />}
+                            />
+                            {/* <material.Button variant="contained" size="medium" onClick={showPatientNote}>
+                                Show Patient Note
+                            </material.Button> */}
                         </span>
                     </div>
-                ) : null
-                }
+                ) : null}
+                {dateValue.length ? (
+                    <ShowPatientNote
+                        dateValue={dateValue}
+                        getAllPatientNote={getAllPatientNote}
+                        patientData={patientData}
+                    />
+                ) : null}
             </material.Paper>
             <Snackbar
                 openSnackBar={openSnackBar}
                 setOpenSnackBar={setOpenSnackBar}
             />
-            <AddPatientHistory
-                openHistory={openHistory}
-                setOpenHistory={setOpenHistory}
+            <AddPatientNote
+                openPatientNote={openPatientNote}
+                setOpenPatientNote={setOpenPatientNote}
                 getPatientHistoryData={getPatientHistoryData}
+            />
+            <AddCustomNote
+                openCustomNote={openCustomNote}
+                setOpenCustomNote={setOpenCustomNote}
+                getCustomNote={getCustomNote}
             />
         </div >
     );

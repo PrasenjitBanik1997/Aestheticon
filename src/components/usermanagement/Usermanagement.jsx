@@ -34,7 +34,7 @@ const Usermanagement = (props) => {
     const [usersData, setUsersData] = useState([]);
     const [isLoading, setisLoading] = useState(true);
     const [open, setOpen] = React.useState({ open: false, Id: null })
-    const [openInvitePoup, setOpenInvitePoup] = React.useState({
+    const [openInvitePopup, setOpenInvitePopup] = React.useState({
         open: false,
         action: ""
     });
@@ -59,7 +59,7 @@ const Usermanagement = (props) => {
     };
 
     const openInviteDialog = (value) => {
-        setOpenInvitePoup({ open: true, action: value })
+        setOpenInvitePopup({ open: true, action: value })
     };
 
     const handleChangePage = (event, newPage) => {
@@ -89,9 +89,9 @@ const Usermanagement = (props) => {
         navigate("/user_management/edit-user_management", { state: { userData } })
     };
 
-    const deleteUser = async (orgId) => {
-        setOpen({ open: true, Id: orgId })
-    };
+    // const deleteUser = async (orgId) => {
+    //     setOpen({ open: true, Id: orgId })
+    // };
 
     const filterByUserID = (value) => {
         const filteredRows = usersData.filter((row) => {
@@ -175,9 +175,9 @@ const Usermanagement = (props) => {
                                                                     <material.CreateIcon color='primary' />
                                                                 </material.IconButton>
                                                             ) : ""}
-                                                            <material.IconButton title='Delete Organisation' aria-label="delete" size="large" onClick={() => deleteUser(row.orgId)}>
+                                                            {/* <material.IconButton title='Delete Organisation' aria-label="delete" size="large" onClick={() => deleteUser(row.orgId)}>
                                                                 <material.DeleteIcon color='warning' />
-                                                            </material.IconButton>
+                                                            </material.IconButton> */}
                                                             <material.IconButton title='Show Organisation Details' aria-label="visibility" size="large" onClick={() => viewUserDetails({ ...row, "readOnly": true, "callFrom": "show" })}>
                                                                 <material.VisibilityIcon color='success' />
                                                             </material.IconButton>
@@ -210,8 +210,8 @@ const Usermanagement = (props) => {
                 </div>
             </div>
             <InviteUser
-                openInvitePoup={openInvitePoup}
-                setOpenInvitePoup={setOpenInvitePoup}
+                openInvitePopup={openInvitePopup}
+                setOpenInvitePopup={setOpenInvitePopup}
                 getAllUserList={getAllUserList}
                 setisLoading={setisLoading}
             />

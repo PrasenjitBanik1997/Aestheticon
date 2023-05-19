@@ -5,7 +5,7 @@ import { material } from '../../library/material'
 import { activeOrDeactiveOrg, deleteOrgById, getAllOrganisation } from '../../services/OrganisationService'
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import Snackbar from '../toastrmessage/Snackbar'
@@ -22,7 +22,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const label = { inputProps: { 'aria-label': 'Color switch demo' } };
-let allOrgData;
+var allOrgData;
 
 function Admin() {
   const [open, setOpen] = React.useState({ open: false, Id: null })
@@ -39,7 +39,7 @@ function Admin() {
 
   useEffect(() => {
     getOrganigation()
-  }, [])
+  }, []);
 
   async function getOrganigation() {
     await getAllOrganisation()
@@ -57,11 +57,11 @@ function Admin() {
           setisLoading(false)
         }, 1000);
       })
-  }
+  };
 
   const deleteOrganisation = async (orgId) => {
     setOpen({ open: true, Id: orgId })
-  }
+  };
 
   const deleteOrgAfterConformation = async (orgId) => {
     await deleteOrgById(orgId).then(() => {
@@ -81,7 +81,7 @@ function Admin() {
       })
       setisLoading(false)
     })
-  }
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -118,7 +118,7 @@ function Admin() {
     if (value.trim().toString().length < 1) {
       setOrganisationData(allOrgData);
     } else {
-      console.log(filteredRows)
+      // console.log(filteredRows)
       setOrganisationData(filteredRows);
     }
   };
@@ -225,21 +225,25 @@ function Admin() {
         openSnackBar={openSnackBar}
         setOpenSnackBar={setOpenSnackBar}
       />
-      <ConfirmationDialog open={open} setOpen={setOpen} deleteOrgAfterConformation={deleteOrgAfterConformation} />
+      <ConfirmationDialog
+        open={open}
+        setOpen={setOpen}
+        deleteOrgAfterConformation={deleteOrgAfterConformation}
+      />
     </div>
   )
 };
 
 function ConfirmationDialog(props) {
-  const { open, setOpen, deleteOrgAfterConformation } = props
+  const { open, setOpen, deleteOrgAfterConformation } = props;
 
   const dialogClose = () => {
     setOpen({ open: false, Id: null })
-  }
+  };
 
   const orgDelete = () => {
     deleteOrgAfterConformation(open.Id)
-  }
+  };
 
 
   return (
@@ -254,6 +258,6 @@ function ConfirmationDialog(props) {
       </material.Dialog>
     </div>
   )
-}
+};
 
 export default Admin;
