@@ -1,9 +1,8 @@
 import React from 'react'
-import { material } from '../../library/material'
+import { material } from '../../library/material';
 import { styled } from "@mui/material/styles";
 import Navbar from "../navbar/Navbar";
 import Sidenav from "../sidenav/Sidenav";
-// import Toolbar from "@mui/material/Toolbar";
 
 
 const drawerWidth = 250;
@@ -49,30 +48,25 @@ const Drawer = styled(material.MuiDrawer, {
     "& .MuiDrawer-paper": closedMixin(theme),
   }),
 }));
-export default function Swipedrawer() {
-    const [openSideNav, setOpenSideNav] = React.useState(false);
 
-    // let elem=document.getElementsByClassName("body")
-    // elem.style.width = 
-    const handleDrawer = () => {
-      setOpenSideNav((prevState) => !prevState);
-    };
-  
+export default function Swipedrawer() {
+  const [openSideNav, setOpenSideNav] = React.useState(false);
+
+  const handleDrawer = () => {
+    setOpenSideNav((prevState) => !prevState);
+  };
+
   return (
     <div>
-    <material.Box sx={{ display: "flex" }}>
-      <Navbar openSideNav={openSideNav} handleDrawer={handleDrawer} />
-      <Drawer variant="permanent" open={openSideNav}>
-        <DrawerHeader></DrawerHeader>
-        <Sidenav openSideNav={openSideNav} setOpenSideNav={setOpenSideNav}/>
-      </Drawer>
-      <material.Box
-        component="main"
-        sx={{ flexGrow: 1, bgcolor: "Background.default", p: 3 }}
-      />
-      <material.Toolbar />
-    </material.Box>
+      <material.Box sx={{ display: "flex" }}>
+        <Navbar openSideNav={openSideNav} handleDrawer={handleDrawer} />
+        <Drawer variant="permanent" open={openSideNav}>
+          <DrawerHeader></DrawerHeader>
+          <Sidenav openSideNav={openSideNav} setOpenSideNav={setOpenSideNav} />
+        </Drawer>
 
+        <material.Toolbar />
+      </material.Box>
     </div>
   )
 }

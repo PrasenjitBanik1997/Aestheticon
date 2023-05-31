@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { material } from '../../library/material'
 import "./Login.css"
-import logo from '../../assets/medical-logo.jpg'
+import logo from '../../assets/AestheticsLogo.jpg'
 import { useForm } from "react-hook-form"
 import { useNavigate } from 'react-router-dom'
 import { userLogin } from '../../services/LoginService'
@@ -47,8 +47,10 @@ function Login(props) {
             navigate("/organisation")
           } else if (res.data.role === "ADMIN" || res.data.role === "INJECTOR") {
             navigate("/clinic")
-          } else if (res.data.role === "MANAGER" || res.data.role === "PRESCRIBER") {
-            navigate("/dashboard")
+          } else if (res.data.role === "PRESCRIBER") {
+            navigate("/waiting-room")
+          } else if (res.data.role === "MANAGER") {
+            navigate("/injector-list")
           }
           reset()
         }, 500);

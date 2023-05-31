@@ -82,6 +82,11 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import VideoCallIcon from '@mui/icons-material/VideoCall';
+import DoneIcon from '@mui/icons-material/Done';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import HourglassTopIcon from '@mui/icons-material/HourglassTop';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 
 
 
@@ -169,5 +174,10 @@ export const material = {
     ScheduleIcon,
     CameraAltIcon,
     AddAPhotoIcon,
-    VideoCallIcon
+    VideoCallIcon,
+    DoneIcon,
+    PriorityHighIcon,
+    InventoryIcon,
+    HourglassTopIcon,
+    FormatListBulletedIcon
 }

@@ -1,0 +1,34 @@
+.video-content {
+    position: relative;
+    width: 100% !important;
+    height: 100vh !important;
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+#publisher-element {
+    position: absolute;
+    width: 20% !important;
+    height: 20vh !important;
+    margin-right: 3%;
+    /* margin-left: auto;
+    margin-right: auto; */
+}
+
+
+/* .video {
+    height: 100%;
+} */
+
+#subscriber {
+    width: 80% !important;
+    height: 80vh !important;
+
+    /* margin-right: auto; */
+}
+
+.screen {
+    display: flex;
+    justify-content: end;
+}

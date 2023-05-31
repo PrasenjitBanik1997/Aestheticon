@@ -9,6 +9,7 @@ import Snackbar from '../../toastrmessage/Snackbar';
 import ConsentForm from '../consent-form/ConsentForm';
 import { dateAndTimeFormat } from '../../../date-and-time-format/DateAndTimeFormat';
 import AddTreatmentPlan from './AddTreatmentPlan';
+import PatientHistory from '../patient-history/PatientHistory';
 
 
 
@@ -64,6 +65,7 @@ function TreatmentPlan(props) {
         await createBlankTreatmentPlan(obj)
             .then((resp) => {
                 setBlankTreatmentData(resp.data)
+                // console.log(resp.data)
             })
     };
 
@@ -75,7 +77,11 @@ function TreatmentPlan(props) {
     };
 
     const goBack = () => {
-        navigate("/dashboard/patient-list/edit-patient", { state: { patientData } })
+        if (patientData.component === "patientList") {
+            navigate("/patient-list")
+        } else {
+            navigate("/patient-list/edit-patient", { state: { patientData } })
+        }
     };
 
     const openTreatment = () => {
@@ -179,75 +185,75 @@ function TreatmentPlan(props) {
                             <tbody>
                                 <tr className='fw-bold'>
                                     <td>Patient Id</td>
-                                    <td>{treatmentPlanData ? treatmentPlanData.patientId : patientData.patientId}</td>
+                                    <td>{blankTreatmentData ? blankTreatmentData.patientId : patientData.patientId}</td>
                                 </tr>
                                 <tr className='fw-bold'>
                                     <td>Patient Name</td>
-                                    <td>{treatmentPlanData ? treatmentPlanData.patientName : patientData.name}</td>
+                                    <td>{blankTreatmentData ? blankTreatmentData.patientName : patientData.name}</td>
                                 </tr>
                                 <tr className='fw-bold'>
                                     <td>Patient Date of Birth</td>
-                                    <td>{treatmentPlanData ? treatmentPlanData.patientDateOfBirth : patientData.dateOfBirth}</td>
+                                    <td>{blankTreatmentData ? blankTreatmentData.patientDateOfBirth : patientData.dateOfBirth}</td>
                                 </tr>
                                 <tr className='fw-bold'>
                                     <td>Injector Id</td>
-                                    <td>{treatmentPlanData ? treatmentPlanData.injectorId : userDetails.userId}</td>
+                                    <td>{blankTreatmentData ? blankTreatmentData.injectorId : userDetails.userId}</td>
                                 </tr>
                                 <tr className='fw-bold'>
                                     <td>Injector Name</td>
-                                    <td>{treatmentPlanData ? treatmentPlanData.injectorName : userDetails.name}</td>
+                                    <td>{blankTreatmentData ? blankTreatmentData.injectorName : userDetails.name}</td>
                                 </tr>
                                 <tr className='fw-bold'>
                                     <td>Clinic Name</td>
-                                    <td>{treatmentPlanData ? treatmentPlanData.clinicName : clinic.clinicName}</td>
+                                    <td>{blankTreatmentData ? blankTreatmentData.clinicName : clinic.clinicName}</td>
                                 </tr>
                                 <tr className='fw-bold'>
                                     <td>Clinic Address</td>
-                                    <td>{treatmentPlanData ? treatmentPlanData.clinicAddress : clinic.registeredOfficeAddress}</td>
+                                    <td>{blankTreatmentData ? blankTreatmentData.clinicAddress : clinic.registeredOfficeAddress}</td>
                                 </tr>
                                 <tr className='fw-bold'>
                                     <td>Time Stamp</td>
-                                    <td>{treatmentPlanData ? dateAndTimeFormat(treatmentPlanData.createdAt) : dateAndTimeFormat(date)}</td>
+                                    <td>{blankTreatmentData ? dateAndTimeFormat(blankTreatmentData.createdAt) : dateAndTimeFormat(date)}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    {/* {treatmentPlanData ? treatmentPlanData.targetAreaBefore.map((ele, k) => (
+                    {blankTreatmentData.targetAreaBefore ? blankTreatmentData.targetAreaBefore.map((ele, k) => (
                         <div className='col-6 py-2' key={k}>
                             <img
                                 src={ele}
                                 height={100} width="25%"
                             />
                         </div>
-                    )) : ( */}
-                    <div className='col-6 py-2' hidden={close}>
-                        {image ? (
-                            <>
-                                <span className='me-5'>
-                                    {allImages.length ? allImages.map((ele, i) => (
-                                        <img
-                                            key={i}
-                                            src={URL.createObjectURL(ele.image)}
-                                            height={100} width="25%"
-                                            onClick={() => showImage(ele.image)}
-                                            style={{ cursor: "pointer" }}
-                                        />
-                                    )) : ""}
+                    )) : (
+                        <div className='col-6 py-2' hidden={close}>
+                            {image ? (
+                                <>
+                                    <span className='me-5'>
+                                        {allImages.length ? allImages.map((ele, i) => (
+                                            <img
+                                                key={i}
+                                                src={URL.createObjectURL(ele.image)}
+                                                height={100} width="25%"
+                                                onClick={() => showImage(ele.image)}
+                                                style={{ cursor: "pointer" }}
+                                            />
+                                        )) : ""}
+                                    </span>
+                                </>
+                            ) : (
+                                <span>
+                                    <video ref={videoRef} autoPlay height={300} width="100%" />
+                                    <span className='d-flex justify-content-center mt-2'>
+                                        <material.Button variant="contained" onClick={capturePhoto} startIcon={<material.CameraAltIcon />} >take photo</material.Button>
+                                        <material.Button variant="contained" onClick={toggleCamera} className='ms-2'>
+                                            {stream ? 'Close camera' : 'Open camera'}
+                                        </material.Button>
+                                    </span>
                                 </span>
-                            </>
-                        ) : (
-                            <span>
-                                <video ref={videoRef} autoPlay height={300} width="100%" />
-                                <span className='d-flex justify-content-center mt-2'>
-                                    <material.Button variant="contained" onClick={capturePhoto} startIcon={<material.CameraAltIcon />} >take photo</material.Button>
-                                    <material.Button variant="contained" onClick={toggleCamera} className='ms-2'>
-                                        {stream ? 'Close camera' : 'Open camera'}
-                                    </material.Button>
-                                </span>
-                            </span>
-                        )}
-                    </div>
-                    {/* )} */}
+                            )}
+                        </div>
+                    )}
                 </div>
                 <hr />
                 <div className='row ms-2'>
@@ -261,6 +267,10 @@ function TreatmentPlan(props) {
                             {/* // ) : ""} */}
                         </span>
                     </div>
+                    <PatientHistory
+                        patientData={patientData}
+                    />
+                    <hr />
                     <div hidden={hideShow}>
                         {treatmentData.length ? treatmentData.map((ele, i) => (
                             <div className='row me-2 mt-3' key={i}>

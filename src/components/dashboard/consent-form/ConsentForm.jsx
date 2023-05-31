@@ -12,7 +12,7 @@ var treatmentPlanData;
 
 function ConsentForm(props) {
 
-    const { treatmentData, openConsentForm, blankTreatmentData, uploadImage, uniqueTreatmentName } = props;
+    const { treatmentData, openConsentForm, blankTreatmentData, uploadImage, uniqueTreatmentName, component } = props;
     const [patientSignature, setPatientSignature] = useState(null);
     const [openSnackBar, setOpenSnackBar] = useState({
         "action": false,
@@ -111,7 +111,7 @@ function ConsentForm(props) {
                 <hr />
                 <div>
                     <span className="float-end me-5">
-                        <material.Button variant="contained" onClick={saveAsDraft} className='me-3'>Save As draft</material.Button>
+                        <material.Button variant="contained" onClick={saveAsDraft} className='me-3' hidden={component === "treatmentPlanDetails"}>Save As draft</material.Button>
                         <material.Button variant="contained" onClick={submitConsentForm} disabled={!patientSignature}>Submit</material.Button>
                     </span>
                 </div>

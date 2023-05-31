@@ -3,17 +3,23 @@
   }
   
   .sideNav-text{
-    color: rgb(23, 101, 227);
+    color: rgb(0, 114, 229);
+    background-color: rgb(240, 247, 255);
     text-decoration: none;
     position:relative;
     left:0;
     top:0;
     bottom:0;  
+    display: flex;
+    align-items: center;
+    height: 50px;
+    border-radius: 10px;
+    margin: 0px 5px 0px 5px;
   }
   .text-content{
     text-decoration: none;
-    color: black;
+    color: #2c2929;
   }
   .sideNav-content{
-    background-color: rgb(118, 107, 107);
+    background-color: rgb(200, 197, 197);
   }

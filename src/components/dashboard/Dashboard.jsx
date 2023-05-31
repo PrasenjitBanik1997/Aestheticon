@@ -28,6 +28,8 @@ function Dashboard(props) {
             navigate("/dashboard/approval-requests");
         } else if (value.action === "watingRoom") {
             navigate("/dashboard/waiting-room");
+        } else if (value.action === "stocks") {
+            navigate("/dashboard/stocks");
         }
     };
 
@@ -59,7 +61,7 @@ function Dashboard(props) {
                     <>
                         <div className='col-lg-3 col-md-6 col-sm-12 mt-3'>
                             <material.Card sx={{ backgroundColor: "lightblue" }}>
-                                <material.CardActionArea sx={{ pt: 3, pb: 3 }}>
+                                <material.CardActionArea sx={{ pt: 3, pb: 3 }} onClick={() => handleClick({ "action": "stocks" })}>
                                     <material.CardContent>
                                         <h6 className='text-center'>Stocks</h6>
                                     </material.CardContent>

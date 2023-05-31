@@ -1,0 +1,17 @@
+/* .table-scrollbar-style {
+
+    ::-webkit-scrollbar {
+        width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+        background: red;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: white;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+} */

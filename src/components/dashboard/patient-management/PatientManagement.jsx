@@ -23,7 +23,8 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 const label = { inputProps: { 'aria-label': 'Color switch demo' } };
 
-let allPatientData;
+var allPatientData;
+// var history;
 
 function PatientManagement(props) {
 
@@ -68,8 +69,8 @@ function PatientManagement(props) {
             })
     };
 
-    const addPatient = () => {
-        navigate("/dashboard/patient-list/add-patient")
+    const addPatient = (patientData) => {
+        navigate("/patient-list/add-patient")
     };
 
     const handleChangePage = (event, newPage) => {
@@ -97,12 +98,17 @@ function PatientManagement(props) {
     };
 
     const showPatientData = (patientData) => {
-        navigate("/dashboard/patient-list/edit-patient", { state: { patientData } })
+        navigate("/patient-list/edit-patient", { state: { patientData } })
     };
 
-    const goBack = () => {
-        navigate("/dashboard")
+    // const goBack = () => {
+    //     navigate("/dashboard")
+    // };
+
+    const openTreatmentPlan = (patientData) => {
+        navigate("/patient-list/treatment-plan", { state: { patientData } })
     };
+
 
     return (
         <div className='body'>
@@ -114,7 +120,7 @@ function PatientManagement(props) {
                 <div className='col-6'>
                     <span className="float-end">
                         <material.Button variant="contained" onClick={() => addPatient({ "readOnly": false, "callFrom": "add" })} startIcon={<material.AddIcon />}> Add-Patient</material.Button>
-                        <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
+                        {/* <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button> */}
                     </span>
                 </div>
             </div>
@@ -133,15 +139,19 @@ function PatientManagement(props) {
                             <material.Table stickyHeader aria-label="sticky table">
                                 <material.TableHead >
                                     <material.TableRow>
-                                        <StyledTableCell >Patient Name</StyledTableCell>
-                                        <StyledTableCell align="right">Patient ID</StyledTableCell>
-                                        <StyledTableCell align="right">Status</StyledTableCell>
+                                        <StyledTableCell>Name</StyledTableCell>
+                                        <StyledTableCell>Patient ID</StyledTableCell>
+                                        <StyledTableCell>Date of Birth</StyledTableCell>
+                                        <StyledTableCell>Email</StyledTableCell>
+                                        <StyledTableCell>Gender</StyledTableCell>
+                                        <StyledTableCell>Status</StyledTableCell>
+                                        <StyledTableCell>Action</StyledTableCell>
                                     </material.TableRow>
                                 </material.TableHead>
                                 <material.TableBody>
                                     {isLoading ? (
                                         <material.TableRow >
-                                            <material.TableCell colSpan={6}>
+                                            <material.TableCell colSpan={7}>
                                                 <SkeletonTheme baseColor="#bbdefb" highlightColor="#c6ff00" enableAnimation="true" inline="true" width="100% " height="30px">
                                                     <Skeleton count={10} />
                                                 </SkeletonTheme>
@@ -153,18 +163,29 @@ function PatientManagement(props) {
                                                 <material.TableRow
                                                     key={i}
                                                     sx={{
-                                                        '&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer",
-                                                        ":hover": { backgroundColor: "lightgray" }
+                                                        '&:last-child td, &:last-child th': { border: 0 },
+                                                        // cursor: "pointer",
+                                                        // ":hover": { backgroundColor: "lightgray" }
                                                     }}
-                                                    onClick={() => showPatientData({ ...row, "action": "edit" })}
+                                                // onClick={() => showPatientData({ ...row, "action": "edit" })}
                                                 >
                                                     <material.TableCell sx={{ textTransform: "capitalize" }} size='small' component="th" scope="row">{row.name} </material.TableCell>
-                                                    <material.TableCell size='small' align="right">{row.patientId}</material.TableCell>
-                                                    <material.TableCell size='small' align="right">{row.active ? (<p style={{ color: "green", fontWeight: "bold" }}>active</p>) : (<p style={{ color: "red", fontWeight: "bold" }}>De-active</p>)}</material.TableCell>
+                                                    <material.TableCell size='small'>{row.patientId}</material.TableCell>
+                                                    <material.TableCell size='small'>{row.dateOfBirth}</material.TableCell>
+                                                    <material.TableCell size='small'>{row.email}</material.TableCell>
+                                                    <material.TableCell size='small'>{row.gender}</material.TableCell>
+                                                    <material.TableCell size='small'>{row.active ? (<p style={{ color: "green", fontWeight: "bold" }}>active</p>) : (<p style={{ color: "red", fontWeight: "bold" }}>De-active</p>)}</material.TableCell>
+                                                    <StyledTableCell>
+                                                        <span className='d-flex flex-column'>
+                                                            <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" size="small" color='secondary' startIcon={<material.VisibilityIcon />} onClick={() => showPatientData({ ...row, "action": "edit" })}>View</material.Button>
+                                                            {/* <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" size="small" startIcon={<material.AddIcon />} onClick={() => showHistory({ ...row, "component": "patientList" })}>History</material.Button> */}
+                                                            <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" size="small" startIcon={<material.AddIcon />} onClick={() => openTreatmentPlan({ ...row, "component": "patientList" })}>Add Treatment</material.Button>
+                                                        </span>
+                                                    </StyledTableCell>
                                                 </material.TableRow>
                                             )) : (
                                                 <material.TableRow >
-                                                    <material.TableCell colSpan={6}>
+                                                    <material.TableCell colSpan={7}>
                                                         <h6 className='d-flex justify-content-center text-danger fw-bold'>No data found</h6>
                                                     </material.TableCell>
                                                 </material.TableRow>

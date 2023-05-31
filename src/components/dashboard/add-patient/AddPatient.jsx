@@ -6,13 +6,14 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { connect } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { addNewPatient, getPatientNote } from '../../../services/PatientService';
+import { addNewPatient, getPatientNote, addPatientHistory } from '../../../services/PatientService';
 import Snackbar from '../../toastrmessage/Snackbar';
 import { dateAndTimeFormat, dateFormat } from '../../../date-and-time-format/DateAndTimeFormat';
 import moment from 'moment';
 import ShowPatientNote from '../showPatientNote/ShowPatientNote';
 import AddCustomNote from '../../dialog/AddCustomNote';
 import AddPatientNote from '../../dialog/AddPatientNote';
+import PatientHistory from '../patient-history/PatientHistory';
 
 
 var patientNoteData = [];
@@ -66,7 +67,7 @@ function AddPatient(props) {
     }
 
     const goBack = () => {
-        navigate("/dashboard/patient-list")
+        navigate("/patient-list")
     };
 
     const changeGender = (event) => {
@@ -128,7 +129,7 @@ function AddPatient(props) {
                     "type": "success",
                     "message": "Patient added successfully",
                 })
-                console.log(resp)
+                getAllPatientNote()
             })
             .catch((error) => {
                 console.log(error)
@@ -145,7 +146,7 @@ function AddPatient(props) {
     // };
 
     const openTreatmentPlan = () => {
-        navigate("/dashboard/patient-list/edit-patient/treatment-plan", { state: { patientData } })
+        navigate("/patient-list/edit-patient/treatment-plan", { state: { patientData } })
     };
 
     const selectDate = (e, value) => {
@@ -154,6 +155,31 @@ function AddPatient(props) {
         setDateValue(data)
         // console.log(data)
     }
+
+    const addNOte = async () => {
+        let obj = {
+            "patientId": patientData.patientId,
+            "dateOfEntry": moment().format("YYYY-MM-DDTHH:mm:ss"),
+            "history": patientNoteData
+        }
+        await addPatientHistory(obj)
+            .then((res) => {
+                setOpenSnackBar({
+                    "action": true,
+                    "type": "success",
+                    "message": "Note added successfully",
+                })
+                setHideShow(false)
+                getAllPatientNote()
+            })
+            .catch((error) => {
+                setOpenSnackBar({
+                    "action": true,
+                    "type": "error",
+                    "message": "Something went wrong",
+                })
+            })
+    };
 
 
     return (
@@ -388,18 +414,8 @@ function AddPatient(props) {
                             {...register("address", { required: true })}
                         />
                     </div>
-                    {/* <div className='col-lg-12 col-md-12 col-sm-12'>
-                        <span className='float-end'>
-                            <material.Button variant="contained" size="medium" className="mt-3" onClick={showHistory}>
-                                Next
-                            </material.Button>
-                        </span>
-                    </div> */}
-                </div>
-                <div className='row mt-5' hidden={patientData ? patientData.action === "edit" : ""}>
-                    <span className='col-lg-6 col-md-6 col-sm-6'><material.Typography variant="h5">Note</material.Typography></span>
-                    <div className='col-lg-6 col-md-6 col-sm-6'>
-                        <span className='float-end'>
+                    {patientData.action === "edit" ? (
+                        <span className='d-flex flex-row just justify-content-end mt-3'>
                             {hideShow ? (
                                 <material.Button variant="contained" className='me-2' onClick={() => addCustomNote({ "action": "addCustomNote" })} startIcon={<material.AddIcon />}>Add-Custom-Note</material.Button>
                             ) : (
@@ -408,6 +424,34 @@ function AddPatient(props) {
                                 </material.Button>
                             )}
                         </span>
+                    ) : null}
+                    {patientData.action === "edit" ? (
+                        <PatientHistory
+                            patientData={patientData}
+                        />
+                    ) : null}
+                    {/* <div className='col-lg-12 col-md-12 col-sm-12'>
+                        <span className='float-end'>
+                            <material.Button variant="contained" size="medium" className="mt-3" onClick={showHistory}>
+                                Next
+                            </material.Button>
+                        </span>
+                    </div> */}
+                </div>
+                <div className='row mt-5'>
+                    <div className='row' hidden={patientData ? patientData.action === "edit" : ""}>
+                        <span className='col-lg-6 col-md-6 col-sm-6'><material.Typography variant="h5">Note</material.Typography></span>
+                        <div className='col-lg-6 col-md-6 col-sm-6'>
+                            <span className='float-end'>
+                                {hideShow ? (
+                                    <material.Button variant="contained" className='me-2' onClick={() => addCustomNote({ "action": "addCustomNote" })} startIcon={<material.AddIcon />}>Add-Custom-Note</material.Button>
+                                ) : (
+                                    <material.Button variant="contained" size="medium" onClick={() => openAddHistory({ "action": "addNote" })} startIcon={<material.AddIcon />}>
+                                        Add-Note
+                                    </material.Button>
+                                )}
+                            </span>
+                        </div>
                     </div>
                     {patientNote ? (
                         <div className='row'>
@@ -486,9 +530,12 @@ function AddPatient(props) {
                     )) : ""}
                     <div className='col-lg-12 col-md-12 col-sm-12 mt-5'>
                         <span className='float-end'>
-                            <material.Button variant="contained" size="medium" onClick={handleSubmit(addPatient)} disabled={!isValid}>
-                                Save
-                            </material.Button>
+                            <material.Button hidden={patientData ? patientData.action === "edit" : ""} variant="contained" size="medium" onClick={handleSubmit(addPatient)} disabled={!isValid}>Save</material.Button>
+                            {hideShow ? (
+                                <material.Button variant="contained" size="medium" onClick={addNOte}>
+                                    Save
+                                </material.Button>
+                            ) : null}
                         </span>
                     </div>
                 </div >

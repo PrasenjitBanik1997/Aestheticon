@@ -77,7 +77,7 @@ function ShowPatientNote(props) {
                     "message": "Something went wrong",
                 })
             })
-    }
+    };
 
     return (
         <div>

@@ -8,6 +8,11 @@ import { styled } from '@mui/material/styles';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { localDateTimeFormat } from '../../../date-and-time-format/DateAndTimeFormat';
+import { changePlanStatus } from '../../../services/PrescriberService';
+import Snackbar from '../../toastrmessage/Snackbar';
+import StatusChangeReasonDialog from '../../dialog/StatusChangeReasonDialog';
+
+
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -31,10 +36,18 @@ function ApprovalWating(props) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(20);
     const [isLoading, setisLoading] = useState(true);
+    const [openSnackBar, setOpenSnackBar] = useState({
+        "action": false,
+        "type": "",
+        "message": "",
+    });
+    const [openStatusChangeDialog, setOpenStatusChangeDialog] = useState({
+        "action": false, "data": ""
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
-        getTreatmentPlan()
+        getTreatmentPlan();
     }, []);
 
 
@@ -45,7 +58,7 @@ function ApprovalWating(props) {
                 setisLoading(false)
                 allPatientData = resp.data
             })
-    }
+    };
 
     const goBack = () => {
         navigate("/dashboard")
@@ -76,8 +89,16 @@ function ApprovalWating(props) {
     };
 
     const showTreatmentPlan = (treatmentPlanDetails) => {
-        navigate("/dashboard/patient-waiting-list/treatment-plan-details", { state: { treatmentPlanDetails } })
+        navigate("/approval-waiting-quere/treatment-plan-details", { state: { treatmentPlanDetails } })
+    };
+
+    const statusChange = async (value) => {
+        setOpenStatusChangeDialog({ action: true, data: value });
     }
+
+    const startVideoChat = (treatmentPlanDetails) => {
+        navigate("/approval-waiting-quere/treatment-plan-details", { state: { treatmentPlanDetails } })
+    };
 
     return (
         <div className='body'>
@@ -86,11 +107,11 @@ function ApprovalWating(props) {
                 <div className='col-6'>
                     <span><material.Typography variant="h5">Approval Waiting Quere</material.Typography></span>
                 </div>
-                <div className='col-6'>
+                {/* <div className='col-6'>
                     <span className="float-end">
                         <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
                     </span>
-                </div>
+                </div> */}
             </div>
             <span style={{ marginLeft: 5 }}>
                 <material.TextField
@@ -109,9 +130,10 @@ function ApprovalWating(props) {
                                     <material.TableRow>
                                         <StyledTableCell>Patient Name</StyledTableCell>
                                         <StyledTableCell>Patient ID</StyledTableCell>
-                                        {/* <StyledTableCell >Clinic Name</StyledTableCell> */}
+                                        <StyledTableCell >Treatment</StyledTableCell>
                                         <StyledTableCell>Created At</StyledTableCell>
                                         <StyledTableCell>Status</StyledTableCell>
+                                        <StyledTableCell>Action</StyledTableCell>
                                     </material.TableRow>
                                 </material.TableHead>
                                 <material.TableBody>
@@ -129,14 +151,18 @@ function ApprovalWating(props) {
                                                 <material.TableRow
                                                     key={i}
                                                     sx={{
-                                                        '&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer",
-                                                        ":hover": { backgroundColor: "lightgray" }
+                                                        '&:last-child td, &:last-child th': { border: 0 }
                                                     }}
-                                                    onClick={() => showTreatmentPlan({ ...row, "parentComponent": "approvalWating" })}
                                                 >
                                                     <material.TableCell sx={{ pt: 2, pb: 2 }} size='small' scope="row">{row.patientName} </material.TableCell>
                                                     <material.TableCell size='small' scope="row">{row.patientId} </material.TableCell>
-                                                    {/* <material.TableCell size='small'>{row.clinicName}</material.TableCell> */}
+                                                    <material.TableCell size='small'>
+                                                        {row.treatmentPlan.map((treatment, k) => (
+                                                            <span className='d-flex flex-wrap' key={k}>
+                                                                {treatment.treatment} {treatment.area} {treatment.product} {treatment.qty}
+                                                            </span>
+                                                        ))}
+                                                    </material.TableCell>
                                                     <material.TableCell size='small'>{localDateTimeFormat(row.timeStamp)}</material.TableCell>
                                                     <material.TableCell size='small'>
                                                         {row.status === "PENDING" ? (
@@ -159,6 +185,21 @@ function ApprovalWating(props) {
                                                                 DRAFT
                                                             </span>
                                                         ) : null}
+                                                    </material.TableCell>
+                                                    <material.TableCell>
+                                                        <span className='d-flex flex-column'>
+                                                            <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" color='secondary' size="small" startIcon={<material.VisibilityIcon />} onClick={() => showTreatmentPlan({ ...row, "parentComponent": "waitingRoom" })}>View</material.Button>
+                                                            {row.status === "DRAFT" ? (
+                                                                <>
+                                                                    {/* <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" style={{ backgroundColor: "yellowgreen" }} size="small" startIcon={<material.DoneIcon />} onClick={() => statusChange({ "action": "pending", ...row })}>Pending</material.Button> */}
+                                                                    <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" color='error' size="small" startIcon={<material.PriorityHighIcon />} onClick={() => statusChange({ "action": "delete", ...row })}>Reject</material.Button>
+                                                                    {/* <material.Button sx={{ textTransform: "none" }} variant="contained" color='info' size="small" startIcon={<material.VideoCallIcon />} onClick={()=>startVideoChat({"action":"videoCall", ...row})}>Call</material.Button> */}
+                                                                </>
+                                                            ) : row.status === "PENDING" ? (
+                                                                <material.Button sx={{ textTransform: "none" }} variant="contained" color='info' size="small" startIcon={<material.VideoCallIcon />} onClick={() => startVideoChat({ "action": "videoCall", ...row })}>Call</material.Button>
+                                                            ) : null}
+
+                                                        </span>
                                                     </material.TableCell>
                                                 </material.TableRow>
                                             )) : (
@@ -185,6 +226,14 @@ function ApprovalWating(props) {
                     </material.Paper>
                 </div>
             </div>
+            <StatusChangeReasonDialog
+                openStatusChangeDialog={openStatusChangeDialog}
+                setOpenStatusChangeDialog={setOpenStatusChangeDialog}
+            />
+            <Snackbar
+                openSnackBar={openSnackBar}
+                setOpenSnackBar={setOpenSnackBar}
+            />
         </div>
     );
 }

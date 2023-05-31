@@ -8,6 +8,9 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useNavigate } from 'react-router-dom';
 import { getPendingTreatmentRequest } from '../../../services/PrescriberService';
 import { dateAndTimeFormat } from '../../../date-and-time-format/DateAndTimeFormat';
+import { changePlanStatus } from '../../../services/PrescriberService';
+import Snackbar from '../../toastrmessage/Snackbar';
+import StatusChangeReasonDialog from '../../dialog/StatusChangeReasonDialog';
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -29,6 +32,15 @@ function WatingRoom(props) {
     const [patientRequestData, setPatientRequestData] = useState([]);
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(20);
+    const [openSnackBar, setOpenSnackBar] = useState({
+        "action": false,
+        "type": "",
+        "message": "",
+    });
+    const [openStatusChangeDialog, setOpenStatusChangeDialog] = useState({
+        "action": false, "data": ""
+    });
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -45,7 +57,7 @@ function WatingRoom(props) {
             .catch((error) => {
 
             })
-    }
+    };
 
     function goBack() {
         navigate("/dashboard")
@@ -76,8 +88,16 @@ function WatingRoom(props) {
     };
 
     function showTreatmentPlan(treatmentPlanDetails) {
-        navigate("/dashboard/waiting-room/treatment-plan-details", { state: { treatmentPlanDetails } })
-    }
+        navigate("/waiting-room/treatment-plan-details", { state: { treatmentPlanDetails } })
+    };
+
+    const statusChange = async (value) => {
+        setOpenStatusChangeDialog({ action: true, data: value })
+    };
+
+    const startVideoChat = (treatmentPlanDetails) => {
+        navigate("/waiting-room/treatment-plan-details", { state: { treatmentPlanDetails } })
+    };
 
     return (
         <div className='body'>
@@ -86,11 +106,11 @@ function WatingRoom(props) {
                 <div className="col-6">
                     <span><material.Typography variant="h5">Waiting Room</material.Typography></span>
                 </div>
-                <div className="col-6">
+                {/* <div className="col-6">
                     <span className="float-end">
                         <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
                     </span>
-                </div>
+                </div> */}
             </div>
             <span style={{ marginLeft: 5 }}>
                 <material.TextField
@@ -109,8 +129,10 @@ function WatingRoom(props) {
                                     <material.TableRow>
                                         <StyledTableCell >Patient Name</StyledTableCell>
                                         <StyledTableCell >Clinic Name</StyledTableCell>
+                                        <StyledTableCell >Treatment</StyledTableCell>
                                         <StyledTableCell >Request Generate Time</StyledTableCell>
                                         <StyledTableCell >Status</StyledTableCell>
+                                        <StyledTableCell>Action</StyledTableCell>
                                     </material.TableRow>
                                 </material.TableHead>
                                 <material.TableBody>
@@ -128,13 +150,18 @@ function WatingRoom(props) {
                                                 <material.TableRow
                                                     key={i}
                                                     sx={{
-                                                        '&:last-child td, &:last-child th': { border: 0 }, cursor: "pointer",
-                                                        ":hover": { backgroundColor: "lightgray" }
+                                                        '&:last-child td, &:last-child th': { border: 0 }
                                                     }}
-                                                    onClick={() => showTreatmentPlan({...row, "parentComponent":"waitingRoom"})}
                                                 >
-                                                    <material.TableCell sx={{ pt: 2, pb: 2 }} size='small' component="th" scope="row">{row.patientName}</material.TableCell>
+                                                    <material.TableCell sx={{ pt: 2, pb: 2 }} size='small'>{row.patientName}</material.TableCell>
                                                     <material.TableCell size='small'>{row.clinicName}</material.TableCell>
+                                                    <material.TableCell size='small'>
+                                                        {row.treatmentPlan.map((treatment, k) => (
+                                                            <span className='d-flex flex-wrap' key={k}>
+                                                                {treatment.treatment} {treatment.area} {treatment.product} {treatment.qty}
+                                                            </span>
+                                                        ))}
+                                                    </material.TableCell>
                                                     <material.TableCell size='small'>{dateAndTimeFormat(row.timeStamp)}</material.TableCell>
                                                     <material.TableCell size='small'>
                                                         {row.status === "PENDING" ? (
@@ -142,6 +169,14 @@ function WatingRoom(props) {
                                                                 PENDING
                                                             </span>
                                                         ) : null}
+                                                    </material.TableCell>
+                                                    <material.TableCell>
+                                                        <span className='d-flex flex-column'>
+                                                            <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" color='secondary' size="small" startIcon={<material.VisibilityIcon />} onClick={() => showTreatmentPlan({ ...row, "parentComponent": "waitingRoom" })}>View</material.Button>
+                                                            <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" color='success' size="small" startIcon={<material.DoneIcon />} onClick={() => statusChange({ "action": "approve", ...row })}>Approve</material.Button>
+                                                            <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" color='error' size="small" startIcon={<material.PriorityHighIcon />} onClick={() => statusChange({ "action": "reject", ...row })}>Reject</material.Button>
+                                                            <material.Button sx={{ textTransform: "none" }} variant="contained" color='info' size="small" startIcon={<material.VideoCallIcon />} onClick={() => startVideoChat({ "action": "videoCall", ...row })}>Call</material.Button>
+                                                        </span>
                                                     </material.TableCell>
                                                 </material.TableRow>
                                             )) : (
@@ -168,6 +203,14 @@ function WatingRoom(props) {
                     </material.Paper>
                 </div>
             </div>
+            <Snackbar
+                openSnackBar={openSnackBar}
+                setOpenSnackBar={setOpenSnackBar}
+            />
+            <StatusChangeReasonDialog
+                openStatusChangeDialog={openStatusChangeDialog}
+                setOpenStatusChangeDialog={setOpenStatusChangeDialog}
+            />
         </div>
     );
 }

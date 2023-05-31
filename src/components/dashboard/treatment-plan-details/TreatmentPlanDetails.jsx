@@ -10,6 +10,15 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { changePlanStatus } from '../../../services/PrescriberService';
 import Snackbar from '../../toastrmessage/Snackbar';
+import { connect } from 'react-redux';
+import VideoCalling from '../video-call/VideoCalling';
+import PatientHistory from "../../dashboard/patient-history/PatientHistory";
+import { getCallCredential } from '../../../services/VideoCallingService';
+import { getPatientHistory } from '../../../services/PatientService';
+import StatusChangeReasonDialog from '../../dialog/StatusChangeReasonDialog';
+import { createBlankTreatmentPlan } from '../../../services/TreatmentPlanService';
+import AddTreatmentPlan from '../treatment-plan/AddTreatmentPlan';
+import ConsentForm from '../consent-form/ConsentForm';
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -23,7 +32,12 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     },
 }));
 
+var treatmentData = [];
+var uniqueTreatmentName = [];
+
 function TreatmentPlanDetails(props) {
+
+    const { userData } = props;
     const [date, setDate] = React.useState(moment().format("YYYY-MM-DDTHH:mm:ss"));
     const [isLoading, setisLoading] = useState(true);
     const [page, setPage] = React.useState(0);
@@ -33,21 +47,60 @@ function TreatmentPlanDetails(props) {
         "type": "",
         "message": "",
     });
+    const [openVideoChat, setOpenVideoChat] = useState(false);
+    const [credentialData, setCredentialData] = useState([]);
+    const [patientHistory, setPatientHistory] = useState([]);
+    const [openStatusChangeDialog, setOpenStatusChangeDialog] = useState({
+        "action": false, "data": ""
+    });
+    const [openTreatmentPlan, setOpenTreatmentPlan] = useState(false);
+    const [hideShow, setHideShow] = useState(true);
+    const [openConsentForm, setOpenConsentForm] = useState(true);
+    const [blankTreatmentData, setBlankTreatmentData] = useState([]);
     const location = useLocation();
     const navigate = useNavigate();
-
+    let userDetails = userData.authReducer.data;
     let treatmentPlanDetails = location.state ? location.state.treatmentPlanDetails : "";
 
     useEffect(() => {
         setisLoading(false)
-        // console.log(treatmentPlanDetails)
-    }, [])
+        getCallCredentialData();
+        getPatientHistoryByPatientId()
+        createBlankTreatment();
+    }, []);
+
+    const createBlankTreatment = async () => {
+        let obj = {
+            patientId: treatmentPlanDetails.patientId,
+            timeStamp: date
+        };
+        await createBlankTreatmentPlan(obj)
+            .then((resp) => {
+                setBlankTreatmentData(resp.data)
+                // console.log(resp.data)
+            })
+    };
+
+    async function getCallCredentialData() {
+        await getCallCredential(treatmentPlanDetails.treatmentPlanRequestId)
+            .then((resp) => {
+                // console.log(resp.data)
+                setCredentialData(resp.data)
+            })
+    };
+
+    const getPatientHistoryByPatientId = async () => {
+        await getPatientHistory(treatmentPlanDetails.patientId)
+            .then((resp) => {
+                setPatientHistory(resp.data)
+            })
+    };
 
     const goBack = () => {
-        if (treatmentPlanDetails.parentComponent === "waitingRoom") {
-            navigate("/dashboard/waiting-room")
+        if (userDetails.role === "PRESCRIBER") {
+            navigate("/waiting-room")
         } else {
-            navigate("/dashboard/approval-waiting-quere")
+            navigate("/approval-waiting-quere")
         }
     };
 
@@ -60,52 +113,32 @@ function TreatmentPlanDetails(props) {
         setPage(0);
     };
 
-    const startVideoChat = async () => {
-      
+    const startVideoChat = () => {
+        setOpenVideoChat(true)
     };
 
+    const openTreatment = () => {
+        setOpenTreatmentPlan(true)
+    };
+
+    const getTreatmentData = (data) => {
+        if (data !== "") {
+            setHideShow(false)
+        }
+        treatmentData.push(data)
+        let array = treatmentData.map((ele) => ele.treatment)
+        uniqueTreatmentName = array.filter((value, index, self) => {
+            return self.indexOf(value) === index;
+        });
+        // console.log(data)
+    };
+
+    const addConsentForm = () => {
+        setOpenConsentForm(false)
+    }
+
     const statusChange = async (value) => {
-        if (value.action === "reject") {
-            let obj = {
-                "treatmentPlanRequestId": treatmentPlanDetails.treatmentPlanRequestId,
-                "status": "REJECTED"
-            }
-            await changePlanStatus(obj)
-                .then((resp) => {
-                    setOpenSnackBar({
-                        "action": true,
-                        "type": "success",
-                        "message": "Rejected successfully",
-                    })
-                })
-                .catch((error) => {
-                    setOpenSnackBar({
-                        "action": true,
-                        "type": "error",
-                        "message": "Something went wrong",
-                    })
-                })
-        } else {
-            let obj = {
-                "treatmentPlanRequestId": treatmentPlanDetails.treatmentPlanRequestId,
-                "status": "APPROVED"
-            }
-            await changePlanStatus(obj)
-                .then((resp) => {
-                    setOpenSnackBar({
-                        "action": true,
-                        "type": "success",
-                        "message": "Approved successfully",
-                    })
-                })
-                .catch((error) => {
-                    setOpenSnackBar({
-                        "action": true,
-                        "type": "error",
-                        "message": "Something went wrong",
-                    })
-                })
-        };
+        setOpenStatusChangeDialog({ action: true, data: value })
     };
 
     return (
@@ -113,19 +146,24 @@ function TreatmentPlanDetails(props) {
             <Swipedrawer />
             <div className="row">
                 <div className="col-6">
-                    <span><material.Typography variant="h5">Tratment Plan Details</material.Typography></span>
+                    <span><material.Typography variant="h5">Treatment Plan Details</material.Typography></span>
                 </div>
                 <div className="col-6">
                     <span className="float-end">
                         {treatmentPlanDetails.status === "DRAFT" ? (
-                            <material.Button variant="contained" className='ms-2' color='secondary' onClick={() => statusChange({ "action": "pending" })}>Pending</material.Button>
-                        ) : (
+                            <>
+                                <material.Button variant="contained" className='me-2' style={{ backgroundColor: "yellowgreen" }} onClick={() => statusChange({ "action": "pending" })}>Pending</material.Button>
+                                <material.Button variant="contained" className='ms-2' color='error' onClick={() => statusChange({ "action": "delete" })}>Reject</material.Button>
+                            </>
+                        ) : treatmentPlanDetails.status === "PENDING" && userDetails.role === "PRESCRIBER" ? (
                             <>
                                 <material.Button variant="contained" startIcon={<material.VideoCallIcon />} onClick={startVideoChat}>Call</material.Button>
                                 <material.Button variant="contained" className='ms-2' color='error' onClick={() => statusChange({ "action": "reject" })}>Reject</material.Button>
                                 <material.Button variant="contained" className='ms-2' color='success' onClick={() => statusChange({ "action": "approve" })}>Approve</material.Button>
                             </>
-                        )}
+                        ) : treatmentPlanDetails.status === "PENDING" && userDetails.role === "INJECTOR" ? (
+                            <material.Button variant="contained" startIcon={<material.VideoCallIcon />} onClick={startVideoChat}>Call</material.Button>
+                        ) : null}
                         <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
                     </span>
                 </div>
@@ -199,6 +237,16 @@ function TreatmentPlanDetails(props) {
                                 </span>
                             </div>
                         </div>
+                        <hr />
+                        <PatientHistory
+                            patientHistory={patientHistory}
+                        />
+                        <hr />
+                        <div hidden={treatmentPlanDetails.status === "PENDING"}>
+                            <span className='d-flex justify-content-end'>
+                                <material.Button variant="contained" className='me-2' startIcon={<material.AddIcon />} onClick={openTreatment} >Add Treatment</material.Button>
+                            </span>
+                        </div>
                         <div className="row mt-3">
                             <div className="col-12">
                                 {/* <material.Paper sx={{ width: '100%', overflow: 'hidden' }}> */}
@@ -260,6 +308,75 @@ function TreatmentPlanDetails(props) {
                                 {/* </material.Paper> */}
                             </div>
                         </div>
+                        <div hidden={hideShow}>
+                            {treatmentData.length ? treatmentData.map((ele, i) => (
+                                <div className='row me-2 mt-3' key={i}>
+                                    <div className='col-lg-3 col-md-6'>
+                                        <material.TextField
+                                            label="Treatment"
+                                            id="standard-error"
+                                            variant="standard"
+                                            type="text"
+                                            size="small"
+                                            value={ele.treatment}
+                                            fullWidth
+                                            InputProps={{ readOnly: true }}
+                                            inputProps={{ style: { textTransform: 'capitalize' } }}
+                                            sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                        />
+                                    </div>
+                                    <div className='col-lg-3 col-md-6'>
+                                        <material.TextField
+                                            label="Area"
+                                            id="standard-error"
+                                            variant="standard"
+                                            type="text"
+                                            size="small"
+                                            fullWidth
+                                            value={ele.area}
+                                            InputProps={{ readOnly: true }}
+                                            inputProps={{ style: { textTransform: 'capitalize' } }}
+                                            sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                        />
+                                    </div>
+                                    <div className='col-lg-3 col-md-6'>
+                                        <material.TextField
+                                            label="Product"
+                                            id="standard-error"
+                                            variant="standard"
+                                            type="text"
+                                            size="small"
+                                            fullWidth
+                                            value={ele.product}
+                                            InputProps={{ readOnly: true }}
+                                            inputProps={{ style: { textTransform: 'capitalize' } }}
+                                            sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                        />
+                                    </div>
+                                    <div className='col-lg-3 col-md-6 d-flex flex-row'>
+                                        <material.TextField
+                                            label="Qty"
+                                            id="standard-error"
+                                            variant="standard"
+                                            type="text"
+                                            size="small"
+                                            fullWidth
+                                            value={ele.qty}
+                                            InputProps={{ readOnly: true }}
+                                            inputProps={{ style: { textTransform: 'capitalize' } }}
+                                            sx={{ marginTop: { xs: 3, sm: 3, md: 3 } }}
+                                        />
+                                    </div>
+                                </div>
+                            )) : ""}
+                            <div className='mb-3'>
+                                {openConsentForm === true ? (
+                                    <span className="float-end mt-5 me-3">
+                                        <material.Button variant="contained" startIcon={<material.AddIcon />} onClick={addConsentForm}>Add Consent Form</material.Button>
+                                    </span>
+                                ) : ""}
+                            </div>
+                        </div>
                     </material.Paper>
                 </div>
                 {/* </div> */}
@@ -268,8 +385,39 @@ function TreatmentPlanDetails(props) {
                 openSnackBar={openSnackBar}
                 setOpenSnackBar={setOpenSnackBar}
             />
+            {openVideoChat || treatmentPlanDetails.action === "videoCall" ? (
+                <div>
+                    <VideoCalling
+                        openVideoChat={openVideoChat}
+                        setOpenVideoChat={setOpenVideoChat}
+                        credentialData={credentialData}
+                    />
+                </div>
+            ) : null}
+            <StatusChangeReasonDialog
+                openStatusChangeDialog={openStatusChangeDialog}
+                setOpenStatusChangeDialog={setOpenStatusChangeDialog}
+            />
+            <AddTreatmentPlan
+                openTreatmentPlan={openTreatmentPlan}
+                setOpenTreatmentPlan={setOpenTreatmentPlan}
+                getTreatmentData={getTreatmentData}
+            />
+            <ConsentForm
+                openConsentForm={openConsentForm}
+                treatmentData={treatmentData}
+                blankTreatmentData={blankTreatmentData}
+                uniqueTreatmentName={uniqueTreatmentName}
+                component="treatmentPlanDetails"
+            />
         </div>
     );
-}
+};
 
-export default TreatmentPlanDetails;
+const mapStateToProps = (state) => {
+    return {
+        userData: state,
+    };
+};
+
+export default connect(mapStateToProps)(TreatmentPlanDetails);

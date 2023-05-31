@@ -143,7 +143,7 @@ function Clinic(props) {
 
   const selectClinic = (clinicData) => {
     getClinicDetails(clinicData)
-    navigate("/dashboard")
+    navigate("/patient-list")
   };
 
 
