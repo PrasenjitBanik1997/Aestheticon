@@ -73,7 +73,7 @@ function Login(props) {
           <img src={logo} alt="logo" />
         </div>
         <div className="text-center mt-4 name">
-          Aesthetion
+          Aestheticon
         </div>
         <form className="p-3 mt-3">
           <div className="form-field d-flex align-items-center">
