@@ -87,6 +87,7 @@ import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 
 
 
@@ -179,5 +180,6 @@ export const material = {
     PriorityHighIcon,
     InventoryIcon,
     HourglassTopIcon,
-    FormatListBulletedIcon
+    FormatListBulletedIcon,
+    AttachMoneyIcon
 }

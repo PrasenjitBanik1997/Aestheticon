@@ -18,7 +18,7 @@ function StatusChangeReasonDialog(props) {
 
     const changeStaus = async (data) => {
         resetField("reason")
-        if (openStatusChangeDialog.data.action === "reject") {
+        if (openStatusChangeDialog.data.action === "delete") {
             let obj = {
                 "treatmentPlanRequestId": openStatusChangeDialog.data.treatmentPlanRequestId,
                 "status": "REJECTED",
@@ -39,7 +39,7 @@ function StatusChangeReasonDialog(props) {
                         "message": "Something went wrong",
                     })
                 })
-        } else if (openStatusChangeDialog.data.action === "approved") {
+        } else if (openStatusChangeDialog.data.action === "approve") {
             let obj = {
                 "treatmentPlanRequestId": openStatusChangeDialog.data.treatmentPlanRequestId,
                 "status": "APPROVED",

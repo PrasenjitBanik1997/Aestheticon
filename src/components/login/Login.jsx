@@ -8,6 +8,7 @@ import { userLogin } from '../../services/LoginService'
 import { connect } from 'react-redux';
 import { loginAction } from '../../store/action/Action'
 import Snackbar from '../toastrmessage/Snackbar'
+import { socket } from '../../socket/Socket'
 
 function Login(props) {
 
@@ -42,6 +43,7 @@ function Login(props) {
           "type": "success",
           "message": "You have succesfully logedin",
         })
+        socket.emit('user-info', res.data)
         setTimeout(() => {
           if (res.data.role === "SUPERADMIN") {
             navigate("/organisation")

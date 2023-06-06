@@ -53,6 +53,11 @@ function Sidenav(props) {
                                 <material.InventoryIcon sx={{ fontSize: 35, ml: 1 }} /> {openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Stocks</span>) : null}
                             </NavLink>
                         </div>
+                        <div className='mt-3'>
+                            <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/sale-price-management" >
+                                <material.AttachMoneyIcon sx={{ fontSize: 35, ml: 1 }} /> {openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Sale Price Management</span>) : null}
+                            </NavLink>
+                        </div>
                     </>
                 ) : userDetails.role === "PRESCRIBER" ? (
                     <>
@@ -75,11 +80,6 @@ function Sidenav(props) {
                                     <material.FormatListBulletedIcon sx={{ fontSize: 35, ml: 1 }} />{openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Patients List</span>) : null}
                                 </NavLink>
                             </div>
-                            {/* <div className='mt-3'>
-                                <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/Stocks">
-                                    <material.InventoryIcon sx={{ fontSize: 35, ml: 1 }} />{openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Stocks</span>) : null}
-                                </NavLink>
-                            </div> */}
                             <div className='mt-3'>
                                 <NavLink className={(navData) => (navData.isActive ? 'sideNav-text' : 'text-content')} to="/approval-waiting-quere">
                                     <material.HourglassTopIcon sx={{ fontSize: 35, ml: 1 }} />{openSideNav === true ? (<span className='ms-2' style={{ fontSize: "18px", fontWeight: "bold" }}>Waiting Queue</span>) : null}

@@ -19,6 +19,7 @@ import EditUserMangement from '../components/usermanagement/EditUserManagement';
 import TreatmentPlanDetails from '../components/dashboard/treatment-plan-details/TreatmentPlanDetails';
 import WatingRoom from '../components/dashboard/wating-room/WatingRoom';
 import Stocks from '../components/dashboard/stocks/Stocks';
+import SalePriceManagement from '../components/dashboard/sale-price-management/SalePriceManagement';
 
 export default function Routing() {
     return (
@@ -58,6 +59,7 @@ export default function Routing() {
                 <Route path='/waiting-room' element={<ProtectRoute Component={WatingRoom} />} />
                 <Route path='/waiting-room/treatment-plan-details' element={<ProtectRoute Component={TreatmentPlanDetails} />} />
                 <Route path='/injector-list' element={<ProtectRoute Component={InjectorList} />} />
+                <Route path='/sale-price-management' element={<ProtectRoute Component={SalePriceManagement} />} />
             </Routes>
         </div>
     )

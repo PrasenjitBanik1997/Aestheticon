@@ -8,7 +8,6 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import { changePlanStatus } from '../../../services/PrescriberService';
 import Snackbar from '../../toastrmessage/Snackbar';
 import { connect } from 'react-redux';
 import VideoCalling from '../video-call/VideoCalling';
@@ -64,7 +63,9 @@ function TreatmentPlanDetails(props) {
 
     useEffect(() => {
         setisLoading(false)
-        getCallCredentialData();
+        if (treatmentPlanDetails.status === "PENDING") {
+            getCallCredentialData();
+        }
         getPatientHistoryByPatientId()
         createBlankTreatment();
     }, []);
@@ -77,14 +78,12 @@ function TreatmentPlanDetails(props) {
         await createBlankTreatmentPlan(obj)
             .then((resp) => {
                 setBlankTreatmentData(resp.data)
-                // console.log(resp.data)
             })
     };
 
     async function getCallCredentialData() {
         await getCallCredential(treatmentPlanDetails.treatmentPlanRequestId)
             .then((resp) => {
-                // console.log(resp.data)
                 setCredentialData(resp.data)
             })
     };
@@ -130,7 +129,6 @@ function TreatmentPlanDetails(props) {
         uniqueTreatmentName = array.filter((value, index, self) => {
             return self.indexOf(value) === index;
         });
-        // console.log(data)
     };
 
     const addConsentForm = () => {
@@ -167,7 +165,6 @@ function TreatmentPlanDetails(props) {
                         <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
                     </span>
                 </div>
-                {/* <div className='row mt-3'> */}
                 <div className='col-12 mt-3'>
                     <material.Paper sx={{ width: "100%", overflow: 'hidden', p: 2 }}>
                         <div className='row ms-2'>
@@ -230,7 +227,6 @@ function TreatmentPlanDetails(props) {
                                             key={i}
                                             src={ele}
                                             height={100} width="25%"
-                                            // onClick={() => showImage(ele.image)}
                                             style={{ cursor: "pointer" }}
                                         />
                                     )) : ""}
@@ -249,7 +245,6 @@ function TreatmentPlanDetails(props) {
                         </div>
                         <div className="row mt-3">
                             <div className="col-12">
-                                {/* <material.Paper sx={{ width: '100%', overflow: 'hidden' }}> */}
                                 <material.TableContainer sx={{ maxHeight: 460 }}>
                                     <material.Table stickyHeader aria-label="sticky table">
                                         <material.TableHead >
@@ -277,7 +272,6 @@ function TreatmentPlanDetails(props) {
                                                             sx={{
                                                                 '&:last-child td, &:last-child th': { border: 0 }
                                                             }}
-                                                        // onClick={() => showTreatmentPlan(row)}
                                                         >
                                                             <material.TableCell sx={{ pt: 3, pb: 3 }} size='small' component="th" scope="row">{row.treatment}</material.TableCell>
                                                             <material.TableCell size='small'>{row.area}</material.TableCell>
@@ -305,7 +299,6 @@ function TreatmentPlanDetails(props) {
                                     onPageChange={handleChangePage}
                                     onRowsPerPageChange={handleChangeRowsPerPage}
                                 />
-                                {/* </material.Paper> */}
                             </div>
                         </div>
                         <div hidden={hideShow}>
@@ -379,7 +372,6 @@ function TreatmentPlanDetails(props) {
                         </div>
                     </material.Paper>
                 </div>
-                {/* </div> */}
             </div>
             <Snackbar
                 openSnackBar={openSnackBar}

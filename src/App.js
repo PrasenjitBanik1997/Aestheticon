@@ -5,9 +5,9 @@ import Routing from './routing/Routing';
 function App() {
   return (
     <div>
-     <BrowserRouter>
-     <Routing/>
-     </BrowserRouter>
+      <BrowserRouter>
+        <Routing />
+      </BrowserRouter>
     </div>
   );
 }

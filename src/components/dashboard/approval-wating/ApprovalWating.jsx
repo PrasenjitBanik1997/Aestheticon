@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Swipedrawer from '../../drawer/Swipedrawer';
 import { material } from '../../../library/material';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getTreatmentPlanInjector } from '../../../services/ApprovalWatingService';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
 import 'react-loading-skeleton/dist/skeleton.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { localDateTimeFormat } from '../../../date-and-time-format/DateAndTimeFormat';
-import { changePlanStatus } from '../../../services/PrescriberService';
 import Snackbar from '../../toastrmessage/Snackbar';
 import StatusChangeReasonDialog from '../../dialog/StatusChangeReasonDialog';
 
@@ -26,7 +25,6 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     },
 }));
 
-const label = { inputProps: { 'aria-label': 'Color switch demo' } };
 
 var allPatientData;
 
@@ -44,7 +42,11 @@ function ApprovalWating(props) {
     const [openStatusChangeDialog, setOpenStatusChangeDialog] = useState({
         "action": false, "data": ""
     });
+
     const navigate = useNavigate();
+    const location = useLocation();
+
+    let planRequestId = location.state?.planRequestId;
 
     useEffect(() => {
         getTreatmentPlan();
@@ -54,14 +56,16 @@ function ApprovalWating(props) {
     const getTreatmentPlan = async () => {
         await getTreatmentPlanInjector()
             .then((resp) => {
-                setPatientData(resp.data)
-                setisLoading(false)
-                allPatientData = resp.data
+                if (planRequestId) {
+                    let data = resp.data.filter((ele) => ele.treatmentPlanRequestId === planRequestId)
+                    setPatientData(data)
+                    setisLoading(false)
+                } else {
+                    setPatientData(resp.data)
+                    setisLoading(false)
+                    allPatientData = resp.data
+                }
             })
-    };
-
-    const goBack = () => {
-        navigate("/dashboard")
     };
 
     const handleChangePage = (event, newPage) => {
@@ -94,7 +98,7 @@ function ApprovalWating(props) {
 
     const statusChange = async (value) => {
         setOpenStatusChangeDialog({ action: true, data: value });
-    }
+    };
 
     const startVideoChat = (treatmentPlanDetails) => {
         navigate("/approval-waiting-quere/treatment-plan-details", { state: { treatmentPlanDetails } })
@@ -107,11 +111,6 @@ function ApprovalWating(props) {
                 <div className='col-6'>
                     <span><material.Typography variant="h5">Approval Waiting Quere</material.Typography></span>
                 </div>
-                {/* <div className='col-6'>
-                    <span className="float-end">
-                        <material.Button variant="contained" className='ms-2' onClick={goBack} startIcon={<material.ReplyIcon />}>Back</material.Button>
-                    </span>
-                </div> */}
             </div>
             <span style={{ marginLeft: 5 }}>
                 <material.TextField
@@ -190,11 +189,7 @@ function ApprovalWating(props) {
                                                         <span className='d-flex flex-column'>
                                                             <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" color='secondary' size="small" startIcon={<material.VisibilityIcon />} onClick={() => showTreatmentPlan({ ...row, "parentComponent": "waitingRoom" })}>View</material.Button>
                                                             {row.status === "DRAFT" ? (
-                                                                <>
-                                                                    {/* <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" style={{ backgroundColor: "yellowgreen" }} size="small" startIcon={<material.DoneIcon />} onClick={() => statusChange({ "action": "pending", ...row })}>Pending</material.Button> */}
                                                                     <material.Button sx={{ mb: 1, textTransform: "none" }} variant="contained" color='error' size="small" startIcon={<material.PriorityHighIcon />} onClick={() => statusChange({ "action": "delete", ...row })}>Reject</material.Button>
-                                                                    {/* <material.Button sx={{ textTransform: "none" }} variant="contained" color='info' size="small" startIcon={<material.VideoCallIcon />} onClick={()=>startVideoChat({"action":"videoCall", ...row})}>Call</material.Button> */}
-                                                                </>
                                                             ) : row.status === "PENDING" ? (
                                                                 <material.Button sx={{ textTransform: "none" }} variant="contained" color='info' size="small" startIcon={<material.VideoCallIcon />} onClick={() => startVideoChat({ "action": "videoCall", ...row })}>Call</material.Button>
                                                             ) : null}

@@ -5,7 +5,7 @@ import Navbar from "../navbar/Navbar";
 import Sidenav from "../sidenav/Sidenav";
 
 
-const drawerWidth = 250;
+const drawerWidth = 270;
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
